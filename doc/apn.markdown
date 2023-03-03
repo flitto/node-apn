@@ -2,7 +2,7 @@
 
 node-apn provides a non-blocking, fully managed interface to push notifications to iOS devices using the Apple Push Notification System.
 
-To begin using the APN Module simply `let apn = require('apn')`.
+To begin using the APN Module simply `const apn = require('apn')`.
 
 If you are not familiar with how the Apple Push Notification System (APNS) works, it is recommended that you read the [Local and Push Notification Programming Guide][programming-guide], in particular the section on [The Path of a Remote Notification][push-path].
 
@@ -15,9 +15,9 @@ Sending push notifications starts with creating a connection to APNS using the `
 ```javascript
 let provider = new apn.Provider({
   token: {
-    key: "path/to/key.pem",
-    keyId: "key-id",
-    teamId: "developer-team-id"
+    key: 'path/to/key.pem',
+    keyId: 'key-id',
+    teamId: 'developer-team-id'
   },
   production: false
 });
@@ -30,7 +30,7 @@ See the [Provider documentation](provider.markdown) for more information.
 To push a notification you will need a set of device tokens to send a notification to. These are in the form of a hex-encoded string (see example below). Information about getting device tokens can be found in [Registering for Remote Notifications][registration].
 
 ```javascript
-let deviceTokens = ["834c8b48e6254e47435d74720b1d4a13e3e57d0bf318333c284c1db8ce8ddc58"];
+let deviceTokens = ['834c8b48e6254e47435d74720b1d4a13e3e57d0bf318333c284c1db8ce8ddc58'];
 ```
 
 ### Notification
@@ -39,9 +39,9 @@ You will also need something to send to the devices. A push notification takes t
 
 ```javascript
 let notification = new apn.Notification();
-notification.alert = "Hello, world!";
+notification.alert = 'Hello, world!';
 notification.badge = 1;
-notification.topic = "io.github.node-apn.test-app";
+notification.topic = 'io.github.node-apn.test-app';
 ```
 
 See the [Notification documentation](notification.markdown) for more information.
