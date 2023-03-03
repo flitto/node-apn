@@ -1,4 +1,4 @@
-"use strict";
+"use strict"
 
 module.exports = function() {
 
@@ -6,8 +6,8 @@ module.exports = function() {
   }
 
   Client.prototype.write = function mockWrite(notification, device) {
-    return { device };
+    return { device }
   };
 
-  return Client;
-};
+  return Client
+}
