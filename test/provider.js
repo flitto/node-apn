@@ -1,171 +1,193 @@
-"use strict";
+const sinon = require('sinon')
+const EventEmitter = require('events')
 
-const sinon = require("sinon");
-const EventEmitter = require("events");
+describe('Provider', () => {
+  let fakes, Provider
 
-describe("Provider", function() {
-  let fakes, Provider;
-
-  beforeEach(function () {
+  beforeEach(() => {
     fakes = {
       Client: sinon.stub(),
       client: new EventEmitter(),
-    };
+    }
 
-    fakes.Client.returns(fakes.client);
-    fakes.client.write = sinon.stub();
-    fakes.client.shutdown = sinon.stub();
+    fakes.Client.returns(fakes.client)
+    fakes.client.write = sinon.stub()
+    fakes.client.shutdown = sinon.stub()
 
-    Provider = require("../lib/provider")(fakes);
-  });
+    Provider = require('../lib/provider')(fakes)
+  })
 
-  describe("constructor", function () {
+  describe('constructor', () => {
+    context('called without `new`', () => {
+      it('returns a new instance', () => {
+        expect(Provider()).to.be.an.instanceof(Provider)
+      })
+    })
 
-    context("called without `new`", function () {
-      it("returns a new instance", function () {
-        expect(Provider()).to.be.an.instanceof(Provider);
-      });
-    });
+    describe('Client instance', () => {
+      it('is created', () => {
+        Provider()
 
-    describe("Client instance", function() {
-      it("is created", function () {
-        Provider();
+        expect(fakes.Client).to.be.calledOnce
+        expect(fakes.Client).to.be.calledWithNew
+      })
 
-        expect(fakes.Client).to.be.calledOnce;
-        expect(fakes.Client).to.be.calledWithNew;
-      });
+      it('is passed the options', () => {
+        const options = { configKey: 'configValue' }
 
-      it("is passed the options", function () {
-        const options = { "configKey": "configValue"};
+        Provider(options)
+        expect(fakes.Client).to.be.calledWith(options)
+      })
+    })
+  })
 
-        Provider(options);
-        expect(fakes.Client).to.be.calledWith(options);
-      });
-    });
-  });
+  describe('send', () => {
+    describe('single notification behaviour', () => {
+      let provider
 
-  describe("send", function () {
+      context('transmission succeeds', () => {
+        beforeEach(() => {
+          provider = new Provider({ address: 'testapi' })
 
-    describe("single notification behaviour", function () {
-      let provider;
+          fakes.client.write.onCall(0).returns(Promise.resolve({ device: 'abcd1234' }))
+        })
 
-      context("transmission succeeds", function () {
-        beforeEach( function () {
-          provider = new Provider( { address: "testapi" } );
+        it('invokes the writer with correct `this`', () => {
+          return provider.send(notificationDouble(), 'abcd1234').then(() => {
+            expect(fakes.client.write).to.be.calledOn(fakes.client)
+          })
+        })
 
-          fakes.client.write.onCall(0).returns(Promise.resolve({ device: "abcd1234" }));
-        });
+        it('writes the notification to the client once', () => {
+          return provider.send(notificationDouble(), 'abcd1234').then(() => {
+            const notification = notificationDouble()
+            const builtNotification = {
+              headers: notification.headers(),
+              body: notification.compile(),
+            }
+            expect(fakes.client.write).to.be.calledOnce
+            expect(fakes.client.write).to.be.calledWith(builtNotification, 'abcd1234')
+          })
+        })
 
-        it("invokes the writer with correct `this`", function () {
-          return provider.send(notificationDouble(), "abcd1234")
-            .then(function () {
-              expect(fakes.client.write).to.be.calledOn(fakes.client);
-            });
-        });
+        it('does not pass the array index to writer',() => {
+          return provider.send(notificationDouble(), 'abcd1234').then(() => {
+            expect(fakes.client.write.firstCall.args[2]).to.be.undefined
+          })
+        })
 
-        it("writes the notification to the client once", function () {
-          return provider.send(notificationDouble(), "abcd1234")
-            .then(function () {
-              const notification = notificationDouble();
-              const builtNotification = {
-                headers: notification.headers(),
-                body: notification.compile(),
-              };
-              expect(fakes.client.write).to.be.calledOnce;
-              expect(fakes.client.write).to.be.calledWith(builtNotification, "abcd1234");
-            });
-        });
+        it('resolves with the device token in the sent array', () => {
+          return expect(provider.send(notificationDouble(), 'abcd1234')).to.become({
+            sent: [{ device: 'abcd1234' }],
+            failed: [],
+          })
+        })
+      })
 
-        it("does not pass the array index to writer", function () {
-          return provider.send(notificationDouble(), "abcd1234")
-            .then(function () {
-              expect(fakes.client.write.firstCall.args[2]).to.be.undefined;
-            });
-        });
+      context('error occurs', () => {
+        let promise
 
-        it("resolves with the device token in the sent array", function () {
-          return expect(provider.send(notificationDouble(), "abcd1234"))
-            .to.become({ sent: [{"device": "abcd1234"}], failed: []});
-        });
-      });
+        beforeEach(() => {
+          const provider = new Provider({ address: 'testapi' })
 
-      context("error occurs", function () {
-        let promise;
+          fakes.client.write.onCall(0).returns(
+            Promise.resolve({
+              device: 'abcd1234',
+              status: '400',
+              response: { reason: 'BadDeviceToken' },
+            })
+          )
+          promise = provider.send(notificationDouble(), 'abcd1234')
+        })
 
-        beforeEach(function () {
-          const provider = new Provider( { address: "testapi" } );
+        it('resolves with the device token, status code and response in the failed array',  () => {
+          return expect(promise).to.eventually.deep.equal({
+            sent: [],
+            failed: [{ device: 'abcd1234', status: '400', response: { reason: 'BadDeviceToken' } }],
+          })
+        })
+      })
+    })
 
-          fakes.client.write.onCall(0).returns(Promise.resolve({ device: "abcd1234", status: "400", response: { reason: "BadDeviceToken" }}));
-          promise = provider.send(notificationDouble(), "abcd1234");
-        });
+    context('when multiple tokens are passed',  () => {
+      beforeEach(() => {
+        fakes.resolutions = [
+          { device: 'abcd1234' },
+          { device: 'adfe5969', status: '400', response: { reason: 'MissingTopic' } },
+          {
+            device: 'abcd1335',
+            status: '410',
+            response: { reason: 'BadDeviceToken', timestamp: 123456789 },
+          },
+          { device: 'bcfe4433' },
+          { device: 'aabbc788', status: '413', response: { reason: 'PayloadTooLarge' } },
+          { device: 'fbcde238', error: new Error('connection failed') },
+        ]
+      })
 
-        it("resolves with the device token, status code and response in the failed array", function () {
-          return expect(promise).to.eventually.deep.equal({ sent: [], failed: [{"device": "abcd1234", "status": "400", "response": { "reason" : "BadDeviceToken" }}]});
-        });
-      });
-    });
+      context('streams are always returned',  () => {
+        let promise
 
-    context("when multiple tokens are passed", function () {
+        beforeEach(() => {
+          const provider = new Provider({ address: 'testapi' })
 
-      beforeEach(function () {
-          fakes.resolutions = [
-            { device: "abcd1234" },
-            { device: "adfe5969", status: "400", response: { reason: "MissingTopic" }},
-            { device: "abcd1335", status: "410", response: { reason: "BadDeviceToken", timestamp: 123456789 }},
-            { device: "bcfe4433" },
-            { device: "aabbc788", status: "413", response: { reason: "PayloadTooLarge" }},
-            { device: "fbcde238", error: new Error("connection failed") },
-          ];
-      });
-
-      context("streams are always returned", function () {
-        let promise;
-
-        beforeEach( function () {
-          const provider = new Provider( { address: "testapi" } );
-
-          for(let i=0; i < fakes.resolutions.length; i++) {
-            fakes.client.write.onCall(i).returns(Promise.resolve(fakes.resolutions[i])); 
+          for (let i = 0; i < fakes.resolutions.length; i++) {
+            fakes.client.write.onCall(i).returns(Promise.resolve(fakes.resolutions[i]))
           }
 
-          promise = provider.send(notificationDouble(), fakes.resolutions.map( res => res.device ));
+          promise = provider.send(
+            notificationDouble(),
+            fakes.resolutions.map(res => res.device)
+          )
 
-          return promise;
-        });
+          return promise
+        })
 
-        it("resolves with the sent notifications", function () {
-          return promise.then( (response) => {
-            expect(response.sent).to.deep.equal([{device: "abcd1234"}, {device: "bcfe4433"}]);
-          });
-        });
+        it('resolves with the sent notifications', () => {
+          return promise.then(response => {
+            expect(response.sent).to.deep.equal([{ device: 'abcd1234' }, { device: 'bcfe4433' }])
+          })
+        })
 
-        it("resolves with the device token, status code and response or error of the unsent notifications", function () {
-          return promise.then( (response) => {
-            expect(response.failed[0]).to.deep.equal({ device: "adfe5969", status: "400", response: { reason: "MissingTopic" }});
-            expect(response.failed[1]).to.deep.equal({ device: "abcd1335", status: "410", response: { reason: "BadDeviceToken", timestamp: 123456789 }});
-            expect(response.failed[2]).to.deep.equal({ device: "aabbc788", status: "413", response: { reason: "PayloadTooLarge" }});
-            expect(response.failed[3]).to.have.property("device", "fbcde238");
-            expect(response.failed[3]).to.have.nested.property("error.message", "connection failed");
-          });
-        });
-      });
-    });
-  });
+        it('resolves with the device token, status code and response or error of the unsent notifications',  () => {
+          return promise.then((response) => {
+            expect(response.failed[3].error).to.be.an.instanceof(Error)
+            response.failed[3].error = { message: response.failed[3].error.message }
+            expect(response.failed).to.deep.equal(
+              [
+                { device: 'adfe5969', status: '400', response: { reason: 'MissingTopic' } },
+                {
+                  device: 'abcd1335',
+                  status: '410',
+                  response: { reason: 'BadDeviceToken', timestamp: 123456789 },
+                },
+                { device: 'aabbc788', status: '413', response: { reason: 'PayloadTooLarge' } },
+                { device: 'fbcde238', error: { message: 'connection failed' } },
+              ],
+              `Unexpected result: ${JSON.stringify(response.failed)}`
+            )
+          })
+        })
+      })
+    })
+  })
 
-  describe("shutdown", function () {
-    it("invokes shutdown on the client", function () { 
-      let provider = new Provider({});
-      provider.shutdown();
+  describe('shutdown', () => {
+    it('invokes shutdown on the client', () => {
+      const provider = new Provider({})
+      provider.shutdown()
 
-      expect(fakes.client.shutdown).to.be.calledOnce;
-    });
-  });
-});
+      expect(fakes.client.shutdown).to.be.calledOnce
+    })
+  })
+})
 
-function notificationDouble() {
+ notificationDouble = () => {
   return {
     headers: sinon.stub().returns({}),
     payload: { aps: { badge: 1 } },
-    compile: function() { return JSON.stringify(this.payload); }
-  };
+    compile: () => {
+      return JSON.stringify(this.payload)
+    }
+  }
 }
