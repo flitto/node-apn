@@ -1,32 +1,13 @@
-[<p align="center"><img src="doc/logo.png" alt="node-apn" width="450" height="auto"></p>][node-apn]
+<p align="center"><img src="doc/logo.png" alt="node-apn" width="450" height="auto"></p>
 
-node-apn
-========
 
+# Node APN <!-- omit in toc -->
+
+[![npm latest version](https://img.shields.io/npm/v/@flitto/node-apn.svg)](https://www.npmjs.com/package/@flitto/node-apn)
+
+---
 > A Node.js module for interfacing with the Apple Push Notification service.
-
-[![Maintenance help wanted](https://img.shields.io/badge/maintenance-help%20wanted-red.svg)](https://github.com/node-apn/node-apn/issues/436)
-[![Build status][ci-image] ][ci-url]
-[![Code coverage][coverage-image]][coverage-url]
-[![Codacy][codacy-image]][codacy-url]
-[![dependencies][dependencies-image]][dependencies-url]
-[![devdependencies][devdependencies-image]][devdependencies-url]
-
-[logo]:doc/logo.png
-[npm-image]:https://nodei.co/npm/apn.png?downloads=true
-[npm-url]:https://npmjs.com/package/apn
-[ci-image]:https://api.travis-ci.org/node-apn/node-apn.svg
-[ci-url]:https://travis-ci.org/node-apn/node-apn
-[coverage-image]:https://coveralls.io/repos/argon/node-apn/badge.svg?branch=develop
-[coverage-url]:https://coveralls.io/r/argon/node-apn
-[codacy-image]:https://www.codacy.com/project/badge/e7735fbe0db244f3b310657d0dabaa11
-[codacy-url]:https://www.codacy.com/public/argon/node-apn
-
-[dependencies-image]:https://david-dm.org/node-apn/node-apn/status.svg
-[dependencies-url]:https://david-dm.org/node-apn/node-apn
-[devdependencies-image]:https://david-dm.org/node-apn/node-apn/dev-status.svg
-[devdependencies-url]:https://david-dm.org/node-apn/node-apn?type=dev
-
+---
 ## Features
 
 - Based on HTTP/2 based provider API
@@ -38,7 +19,7 @@ node-apn
 [npm][] is the preferred installation method:
 
 ```bash
-$ npm install apn --save
+$ npm install @flitto/node-apn --save
 ```
 
 ## Quick Start
@@ -50,7 +31,7 @@ If you have previously used v1.x and wish to learn more about what's changed in 
 ### Load in the module
 
 ```javascript
-const apn = require('apn')
+const apn = require('@flitto/node-apn')
 ```
 
 ### Connecting
@@ -135,66 +116,3 @@ This will result in the the following notification payload being sent to the dev
 You should only create one `Provider` per-process for each certificate/key pair you have. You do not need to create a new `Provider` for each notification. If you are only sending notifications to one app then there is no need for more than one `Provider`. 
 
 If you are constantly creating `Provider` instances in your app, make sure to call `Provider.shutdown()` when you are done with each provider to release its resources and memory.
-
-## Troubleshooting
-
-You are encouraged to read the extremely informative [Troubleshooting Push Notifications][tn2265] Tech Note in the first instance, in case your query is answered there.
-
-## Support
-
-If you have any questions or difficulties working with the module, the [node-apn Google group][googlegroup] should be your first port of call.
-
-Please include as much detail as possible - especially debug logs. If the problem is reproducible, sample code is also extremely helpful. GitHub Issues should only be created for verified problems and enhancements, this will allow them to be tracked more easily.
-
-## Resources
-
-* [Local and Push Notification Programming Guide: APNs Overview][pl]
-* [Apple Technical Note: Troubleshooting Push Notifications][tn2265]
-* [List of Projects, Applications and Companies Using Node-apn][pacapn]
-
-## Credits
-
-Created by [Andrew Naylor][argon]
-
-Thanks to: [Ian Babrou][bobrik], [dgthistle][dgthistle], [Keith Larsen][keithnlarsen], [Mike P][mypark], [Greg Bergé][neoziro], [Asad ur Rehman][AsadR], [Nebojsa Sabovic][nsabovic], [Alberto Gimeno][gimenete], [Randall Tombaugh][rwtombaugh], [Michael Stewart][thegreatmichael], [Olivier Louvignes][mgcrea], [porsager][porsager], [Craig Hockenberry][chockenberry]
-
-## License
-
-Released under the MIT License
-
-> Copyright (c) 2013 Andrew Naylor
->
-> Permission is hereby granted, free of charge, to any person obtaining a copy
-> of this software and associated documentation files (the "Software"), to deal
-> in the Software without restriction, including without limitation the rights
-> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-> copies of the Software, and to permit persons to whom the Software is
-> furnished to do so, subject to the following conditions:
->
-> The above copyright notice and this permission notice shall be included in
-> all copies or substantial portions of the Software.
->
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-[npm]: https://npmjs.org
-[node-apn]: https://github.com/node-apn/node-apn
-[certificateWiki]:https://github.com/node-apn/node-apn/wiki/Preparing-Certificates "Preparing Certificates"
-[pl]: https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/APNSOverview.html "Local and Push Notification Programming Guide: APNs Overview"
-[tn2265]: http://developer.apple.com/library/ios/#technotes/tn2265/_index.html "Troubleshooting Push Notifications"
-[googlegroup]:https://groups.google.com/group/node-apn "node-apn Google Group"
-[pacapn]:https://github.com/node-apn/node-apn/wiki/Projects,-Applications,-and-Companies-Using-Node-apn "List of Projects, Applications and Companies Using node-apn"
-[argon]: https://github.com/argon
-[bobrik]: https://github.com/bobrik
-[dgthistle]: https://github.com/dgthistle
-[keithnlarsen]: https://github.com/keithnlarsen
-[mypark]: https://github.com/mypark
-[neoziro]: https://github.com/neoziro
-[AsadR]: https://github.com/AsadR
-[nsabovic]: https://github.com/nsabovic
-[gimenete]: https://github.com/gimenete
-[rwtombaugh]: https://github.com/rwtombaugh
-[thegreatmichael]: https://github.com/thegreatmichael
-[mgcrea]: https://github.com/mgcrea
-[porsager]: https://github.com/porsager
-[chockenberry]: https://github.com/chockenberry
-
