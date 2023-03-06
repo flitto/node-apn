@@ -24,8 +24,8 @@ const Client = require('../lib/client')({
 
 debug.log = console.log.bind(console)
 
-describe('Client', () => {
-  let server
+describe('Client',() => {
+  let clientServer
   let client
   const MOCK_BODY = '{"mock-key":"mock-value"}'
   const MOCK_DEVICE_TOKEN = 'abcf0123abcf0123abcf0123abcf0123abcf0123abcf0123abcf0123abcf0123'
@@ -47,7 +47,7 @@ describe('Client', () => {
   }
   // Create an insecure server for unit testing.
   const createAndStartMockServer = (port, cb) => {
-    server = http2.createServer((req, res) => {
+    clientServer = http2.createServer((req, res) => {
       const buffers = []
       req.on('data', data => buffers.push(data))
       req.on('end', () => {
@@ -55,37 +55,37 @@ describe('Client', () => {
         cb(req, res, requestBody)
       })
     })
-    server.listen(port)
-    server.on('error', err => {
+    clientServer.listen(port)
+    clientServer.on('error', err => {
       expect.fail(`unexpected error ${err}`)
     })
     // Don't block the tests if this server doesn't shut down properly
-    server.unref()
-    return server
+    clientServer.unref()
+    return clientServer
   }
   const createAndStartMockLowLevelServer = (port, cb) => {
-    server = http2.createServer()
-    server.on('stream', cb)
-    server.listen(port)
-    server.on('error', err => {
+    clientServer = http2.createServer()
+    clientServer.on('stream', cb)
+    clientServer.listen(port)
+    clientServer.on('error', err => {
       expect.fail(`unexpected error ${err}`)
     })
     // Don't block the tests if this server doesn't shut down properly
-    server.unref()
-    return server
+    clientServer.unref()
+    return clientServer
   }
 
   afterEach((done) => {
     const closeServer = () => {
-      if (server) {
-        server.close()
-        server = null
+      if (clientServer) {
+        clientServer.close()
+        clientServer = null
       }
       done()
     }
-    if (client) {
-      client.shutdown(closeServer)
-      client = null
+    if (clientServer) {
+      clientServer.shutdown(closeServer)
+      clientServer = null
     } else {
       closeServer()
     }
@@ -95,7 +95,7 @@ describe('Client', () => {
     let didRequest = false
     let establishedConnections = 0
     let requestsServed = 0
-    server = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
+    clientServer = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
       expect(req.headers[':authority']).to.equal('127.0.0.1')
       expect(req.headers[':method']).to.equal('POST')
       expect(req.headers[':path']).to.equal(`/3/device/${MOCK_DEVICE_TOKEN}`)
@@ -108,8 +108,8 @@ describe('Client', () => {
       requestsServed += 1
       didRequest = true
     })
-    server.on('connection', () => (establishedConnections += 1))
-    await new Promise(resolve => server.on('listening', resolve))
+    clientServer.on('connection', () => (establishedConnections += 1))
+    await new Promise(resolve => clientServer.on('listening', resolve))
 
     client = createClient(TEST_PORT)
 
@@ -144,7 +144,7 @@ describe('Client', () => {
   it('Treats HTTP 200 responses as successful (load test for a batch of requests)', async () => {
     let establishedConnections = 0
     let requestsServed = 0
-    server = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
+    clientServer = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
       expect(req.headers[':authority']).to.equal('127.0.0.1')
       expect(req.headers[':method']).to.equal('POST')
       expect(req.headers[':path']).to.equal(`/3/device/${MOCK_DEVICE_TOKEN}`)
@@ -158,8 +158,8 @@ describe('Client', () => {
         requestsServed += 1
       }, 100)
     })
-    server.on('connection', () => (establishedConnections += 1))
-    await new Promise(resolve => server.on('listening', resolve))
+    clientServer.on('connection', () => (establishedConnections += 1))
+    await new Promise(resolve => clientServer.on('listening', resolve))
 
     client = createClient(TEST_PORT, 1500)
 
@@ -190,7 +190,7 @@ describe('Client', () => {
   it('JSON decodes HTTP 400 responses', async () => {
     let didRequest = false
     let establishedConnections = 0
-    server = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
+    clientServer = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
       expect(requestBody).to.equal(MOCK_BODY)
       // res.setHeader('X-Foo', 'bar')
       // res.writeHead(200, { 'Content-Type': 'text/plain charset=utf-8' })
@@ -198,8 +198,8 @@ describe('Client', () => {
       res.end('{"reason": "BadDeviceToken"}')
       didRequest = true
     })
-    server.on('connection', () => (establishedConnections += 1))
-    await new Promise(resolve => server.on('listening', resolve))
+    clientServer.on('connection', () => (establishedConnections += 1))
+    await new Promise(resolve => clientServer.on('listening', resolve))
 
     client = createClient(TEST_PORT)
     const infoMessages = []
@@ -248,7 +248,7 @@ describe('Client', () => {
   it('Closes connections when HTTP 500 responses are received', async () => {
     let establishedConnections = 0
     let responseDelay = 50
-    server = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
+    clientServer = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
       // Wait 50ms before sending the responses in parallel
       setTimeout(() => {
         expect(requestBody).to.equal(MOCK_BODY)
@@ -256,8 +256,8 @@ describe('Client', () => {
         res.end('{"reason": "InternalServerError"}')
       }, responseDelay)
     })
-    server.on('connection', () => (establishedConnections += 1))
-    await new Promise(resolve => server.on('listening', resolve))
+    clientServer.on('connection', () => (establishedConnections += 1))
+    await new Promise(resolve => clientServer.on('listening', resolve))
 
     client = createClient(TEST_PORT)
 
@@ -293,7 +293,7 @@ describe('Client', () => {
   it('Handles unexpected invalid JSON responses', async () => {
     let establishedConnections = 0
     const responseDelay = 0
-    server = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
+    clientServer = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
       // Wait 50ms before sending the responses in parallel
       setTimeout(() => {
         expect(requestBody).to.equal(MOCK_BODY)
@@ -301,8 +301,8 @@ describe('Client', () => {
         res.end('PC LOAD LETTER')
       }, responseDelay)
     })
-    server.on('connection', () => (establishedConnections += 1))
-    await new Promise(resolve => server.on('listening', resolve))
+    clientServer.on('connection', () => (establishedConnections += 1))
+    await new Promise(resolve => clientServer.on('listening', resolve))
 
     client = createClient(TEST_PORT)
 
@@ -328,7 +328,7 @@ describe('Client', () => {
   it('Handles APNs timeouts', async () => {
     let didGetRequest = false
     let didGetResponse = false
-    server = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
+    clientServer = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
       didGetRequest = true
       setTimeout(() => {
         res.writeHead(200)
@@ -338,7 +338,7 @@ describe('Client', () => {
     })
     client = createClient(TEST_PORT)
 
-    const onListeningPromise = new Promise(resolve => server.on('listening', resolve))
+    const onListeningPromise = new Promise(resolve => clientServer.on('listening', resolve))
     await onListeningPromise
 
     const mockHeaders = { 'apns-someheader': 'somevalue' }
@@ -371,16 +371,16 @@ describe('Client', () => {
   it('Handles goaway frames', async () => {
     let didGetRequest = false
     let establishedConnections = 0
-    server = createAndStartMockLowLevelServer(TEST_PORT, stream => {
+    clientServer = createAndStartMockLowLevelServer(TEST_PORT, stream => {
       const { session } = stream
       const errorCode = 1
       didGetRequest = true
       session.goaway(errorCode)
     })
-    server.on('connection', () => (establishedConnections += 1))
+    clientServer.on('connection', () => (establishedConnections += 1))
     client = createClient(TEST_PORT)
 
-    const onListeningPromise = new Promise(resolve => server.on('listening', resolve))
+    const onListeningPromise = new Promise(resolve => clientServer.on('listening', resolve))
     await onListeningPromise
 
     const mockHeaders = { 'apns-someheader': 'somevalue' }
@@ -407,7 +407,7 @@ describe('Client', () => {
     let didGetRequest = false
     let establishedConnections = 0
     let responseTimeout = 0
-    server = createAndStartMockLowLevelServer(TEST_PORT, stream => {
+    clientServer = createAndStartMockLowLevelServer(TEST_PORT, stream => {
       setTimeout(() => {
         const { session } = stream
         didGetRequest = true
@@ -416,10 +416,10 @@ describe('Client', () => {
         }
       }, responseTimeout)
     })
-    server.on('connection', () => (establishedConnections += 1))
+    clientServer.on('connection', () => (establishedConnections += 1))
     client = createClient(TEST_PORT)
 
-    const onListeningPromise = new Promise(resolve => server.on('listening', resolve))
+    const onListeningPromise = new Promise(resolve => clientServer.on('listening', resolve))
     await onListeningPromise
 
     const mockHeaders = { 'apns-someheader': 'somevalue' }
@@ -455,7 +455,7 @@ describe('Client', () => {
     let didRequest = false
     let establishedConnections = 0
     let requestsServed = 0
-    server = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
+    clientServer = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
       expect(req.headers[':authority']).to.equal('127.0.0.1')
       expect(req.headers[':method']).to.equal('POST')
       expect(req.headers[':path']).to.equal(`/3/device/${MOCK_DEVICE_TOKEN}`)
@@ -469,8 +469,8 @@ describe('Client', () => {
       requestsServed += 1
       didRequest = true
     })
-    server.on('connection', () => (establishedConnections += 1))
-    await new Promise(resolve => server.once('listening', resolve))
+    clientServer.on('connection', () => (establishedConnections += 1))
+    await new Promise(resolve => clientServer.once('listening', resolve))
 
     // Proxy forwards all connections to TEST_PORT
     const proxy = net.createServer(clientSocket => {

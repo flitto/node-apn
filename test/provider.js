@@ -182,7 +182,7 @@ describe('Provider', () => {
   })
 })
 
- notificationDouble = () => {
+function notificationDouble() {
   return {
     headers: sinon.stub().returns({}),
     payload: { aps: { badge: 1 } },
