@@ -1,11 +1,9 @@
-"use strict";
+const chai = require('chai')
+const chaiAsPromised = require('chai-as-promised')
+const sinonChai = require('sinon-chai')
 
-var chai = require("chai");
-var chaiAsPromised = require("chai-as-promised");
-var sinonChai = require("sinon-chai");
+chai.config.includeStack = true
+chai.use(chaiAsPromised)
+chai.use(sinonChai)
 
-chai.config.includeStack = true;
-chai.use(chaiAsPromised);
-chai.use(sinonChai);
-
-global.expect = chai.expect;
+global.expect = chai.expect

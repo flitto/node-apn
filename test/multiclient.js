@@ -1,5 +1,7 @@
+// Tests of MultiClient, copied from test/client.js with modifications of
+// expected connection counts.
+
 const VError = require('verror')
-const net = require('net')
 const http2 = require('http2')
 
 const debug = require('debug')('apn')
@@ -21,11 +23,13 @@ const Client = require('../lib/client')({
   config,
   http2,
 })
-
+const MultiClient = require('../lib/multiclient')({
+  Client,
+})
 debug.log = console.log.bind(console)
 
-describe('Client',() => {
-  let clientServer
+describe('MultiClient', () => {
+  let server
   let client
   const MOCK_BODY = '{"mock-key":"mock-value"}'
   const MOCK_DEVICE_TOKEN = 'abcf0123abcf0123abcf0123abcf0123abcf0123abcf0123abcf0123abcf0123'
@@ -35,19 +39,22 @@ describe('Client',() => {
   // (It's probably possible to allow accepting invalid certificates instead,
   // but that's not the most important point of these tests)
   const createClient = (port, timeout = 500) => {
-    const c = new Client({
+    const mc = new MultiClient({
       port: TEST_PORT,
       address: '127.0.0.1',
+      clientCount: 2,
     })
-    c._mockOverrideUrl = `http://127.0.0.1:${port}`
-    c.config.port = port
-    c.config.address = '127.0.0.1'
-    c.config.requestTimeout = timeout
-    return c
+    mc.clients.forEach(c => {
+      c._mockOverrideUrl = `http://127.0.0.1:${port}`
+      c.config.port = port
+      c.config.address = '127.0.0.1'
+      c.config.requestTimeout = timeout
+    })
+    return mc
   }
   // Create an insecure server for unit testing.
   const createAndStartMockServer = (port, cb) => {
-    clientServer = http2.createServer((req, res) => {
+    server = http2.createServer((req, res) => {
       const buffers = []
       req.on('data', data => buffers.push(data))
       req.on('end', () => {
@@ -55,61 +62,75 @@ describe('Client',() => {
         cb(req, res, requestBody)
       })
     })
-    clientServer.listen(port)
-    clientServer.on('error', err => {
+    server.listen(port)
+    server.on('error', err => {
       expect.fail(`unexpected error ${err}`)
     })
     // Don't block the tests if this server doesn't shut down properly
-    clientServer.unref()
-    return clientServer
+    server.unref()
+    return server
   }
   const createAndStartMockLowLevelServer = (port, cb) => {
-    clientServer = http2.createServer()
-    clientServer.on('stream', cb)
-    clientServer.listen(port)
-    clientServer.on('error', err => {
+    server = http2.createServer()
+    server.on('stream', cb)
+    server.listen(port)
+    server.on('error', err => {
       expect.fail(`unexpected error ${err}`)
     })
     // Don't block the tests if this server doesn't shut down properly
-    clientServer.unref()
-    return clientServer
+    server.unref()
+    return server
   }
 
   afterEach((done) => {
     const closeServer = () => {
-      if (clientServer) {
-        clientServer.close()
-        clientServer = null
+      if (server) {
+        server.close()
+        server = null
       }
       done()
     }
-    if (clientServer) {
-      clientServer.shutdown(closeServer)
-      clientServer = null
+    if (client) {
+      client.shutdown(closeServer)
+      client = null
     } else {
       closeServer()
     }
+  })
+
+  it('rejects invalid clientCount', () => {
+    [-1, 'invalid'].forEach(clientCount => {
+      expect(
+        () =>
+          new MultiClient({
+            port: TEST_PORT,
+            address: '127.0.0.1',
+            clientCount,
+          })
+      ).to.throw(`Expected positive client count but got ${clientCount}`)
+    })
   })
 
   it('Treats HTTP 200 responses as successful', async () => {
     let didRequest = false
     let establishedConnections = 0
     let requestsServed = 0
-    clientServer = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
+    server = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
       expect(req.headers[':authority']).to.equal('127.0.0.1')
       expect(req.headers[':method']).to.equal('POST')
       expect(req.headers[':path']).to.equal(`/3/device/${MOCK_DEVICE_TOKEN}`)
       expect(req.headers[':scheme']).to.equal('https')
       expect(req.headers['apns-someheader']).to.equal('somevalue')
-
       expect(requestBody).to.equal(MOCK_BODY)
+      // res.setHeader('X-Foo', 'bar')
+      // res.writeHead(200, { 'Content-Type': 'text/plain charset=utf-8' })
       res.writeHead(200)
       res.end('')
       requestsServed += 1
       didRequest = true
     })
-    clientServer.on('connection', () => (establishedConnections += 1))
-    await new Promise(resolve => clientServer.on('listening', resolve))
+    server.on('connection', () => (establishedConnections += 1))
+    await new Promise(resolve => server.on('listening', resolve))
 
     client = createClient(TEST_PORT)
 
@@ -136,7 +157,7 @@ describe('Client',() => {
     ])
     didRequest = false
     await runSuccessfulRequest()
-    expect(establishedConnections).to.equal(1) // should establish a connection to the server and reuse it
+    expect(establishedConnections).to.equal(2) // should establish a connection to the server and reuse it
     expect(requestsServed).to.equal(6)
   })
 
@@ -144,7 +165,7 @@ describe('Client',() => {
   it('Treats HTTP 200 responses as successful (load test for a batch of requests)', async () => {
     let establishedConnections = 0
     let requestsServed = 0
-    clientServer = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
+    server = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
       expect(req.headers[':authority']).to.equal('127.0.0.1')
       expect(req.headers[':method']).to.equal('POST')
       expect(req.headers[':path']).to.equal(`/3/device/${MOCK_DEVICE_TOKEN}`)
@@ -158,8 +179,8 @@ describe('Client',() => {
         requestsServed += 1
       }, 100)
     })
-    clientServer.on('connection', () => (establishedConnections += 1))
-    await new Promise(resolve => clientServer.on('listening', resolve))
+    server.on('connection', () => (establishedConnections += 1))
+    await new Promise(resolve => server.on('listening', resolve))
 
     client = createClient(TEST_PORT, 1500)
 
@@ -182,15 +203,14 @@ describe('Client',() => {
     }
 
     await Promise.all(promises)
-    expect(establishedConnections).to.equal(1) // should establish a connection to the server and reuse it
+    expect(establishedConnections).to.equal(2) // should establish a connection to the server and reuse it
     expect(requestsServed).to.equal(LOAD_TEST_BATCH_SIZE)
   }).timeout(10000)
 
-  // https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/handling_notification_responses_from_apns
   it('JSON decodes HTTP 400 responses', async () => {
     let didRequest = false
     let establishedConnections = 0
-    clientServer = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
+    server = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
       expect(requestBody).to.equal(MOCK_BODY)
       // res.setHeader('X-Foo', 'bar')
       // res.writeHead(200, { 'Content-Type': 'text/plain charset=utf-8' })
@@ -198,8 +218,8 @@ describe('Client',() => {
       res.end('{"reason": "BadDeviceToken"}')
       didRequest = true
     })
-    clientServer.on('connection', () => (establishedConnections += 1))
-    await new Promise(resolve => clientServer.on('listening', resolve))
+    server.on('connection', () => (establishedConnections += 1))
+    await new Promise(resolve => server.on('listening', resolve))
 
     client = createClient(TEST_PORT)
     const infoMessages = []
@@ -234,10 +254,11 @@ describe('Client',() => {
     }
     await runRequestWithBadDeviceToken()
     await runRequestWithBadDeviceToken()
-    expect(establishedConnections).to.equal(1) // should establish a connection to the server and reuse it
+    expect(establishedConnections).to.equal(2) // should establish a connection to the server and reuse it
     expect(infoMessages).to.deep.equal([
       'Session connected',
       'Request ended with status 400 and responseData: {"reason": "BadDeviceToken"}',
+      'Session connected',
       'Request ended with status 400 and responseData: {"reason": "BadDeviceToken"}',
     ])
     expect(errorMessages).to.deep.equal([])
@@ -248,7 +269,7 @@ describe('Client',() => {
   it('Closes connections when HTTP 500 responses are received', async () => {
     let establishedConnections = 0
     let responseDelay = 50
-    clientServer = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
+    server = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
       // Wait 50ms before sending the responses in parallel
       setTimeout(() => {
         expect(requestBody).to.equal(MOCK_BODY)
@@ -256,8 +277,8 @@ describe('Client',() => {
         res.end('{"reason": "InternalServerError"}')
       }, responseDelay)
     })
-    clientServer.on('connection', () => (establishedConnections += 1))
-    await new Promise(resolve => clientServer.on('listening', resolve))
+    server.on('connection', () => (establishedConnections += 1))
+    await new Promise(resolve => server.on('listening', resolve))
 
     client = createClient(TEST_PORT)
 
@@ -287,13 +308,13 @@ describe('Client',() => {
       runRequestWithInternalServerError(),
       runRequestWithInternalServerError(),
     ])
-    expect(establishedConnections).to.equal(4) // should close and establish new connections on http 500
+    expect(establishedConnections).to.equal(5) // should close and establish new connections on http 500
   })
 
   it('Handles unexpected invalid JSON responses', async () => {
     let establishedConnections = 0
     const responseDelay = 0
-    clientServer = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
+    server = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
       // Wait 50ms before sending the responses in parallel
       setTimeout(() => {
         expect(requestBody).to.equal(MOCK_BODY)
@@ -301,8 +322,8 @@ describe('Client',() => {
         res.end('PC LOAD LETTER')
       }, responseDelay)
     })
-    clientServer.on('connection', () => (establishedConnections += 1))
-    await new Promise(resolve => clientServer.on('listening', resolve))
+    server.on('connection', () => (establishedConnections += 1))
+    await new Promise(resolve => server.on('listening', resolve))
 
     client = createClient(TEST_PORT)
 
@@ -322,13 +343,13 @@ describe('Client',() => {
     }
     await runRequestWithInternalServerError()
     await runRequestWithInternalServerError()
-    expect(establishedConnections).to.equal(1) // Currently reuses the connection.
+    expect(establishedConnections).to.equal(2) // Currently reuses the connections.
   })
 
   it('Handles APNs timeouts', async () => {
     let didGetRequest = false
     let didGetResponse = false
-    clientServer = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
+    server = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
       didGetRequest = true
       setTimeout(() => {
         res.writeHead(200)
@@ -338,7 +359,7 @@ describe('Client',() => {
     })
     client = createClient(TEST_PORT)
 
-    const onListeningPromise = new Promise(resolve => clientServer.on('listening', resolve))
+    const onListeningPromise = new Promise(resolve => server.on('listening', resolve))
     await onListeningPromise
 
     const mockHeaders = { 'apns-someheader': 'somevalue' }
@@ -371,16 +392,16 @@ describe('Client',() => {
   it('Handles goaway frames', async () => {
     let didGetRequest = false
     let establishedConnections = 0
-    clientServer = createAndStartMockLowLevelServer(TEST_PORT, stream => {
-      const { session } = stream
+    server = createAndStartMockLowLevelServer(TEST_PORT, stream => {
+      const session = stream.session
       const errorCode = 1
       didGetRequest = true
       session.goaway(errorCode)
     })
-    clientServer.on('connection', () => (establishedConnections += 1))
+    server.on('connection', () => (establishedConnections += 1))
     client = createClient(TEST_PORT)
 
-    const onListeningPromise = new Promise(resolve => clientServer.on('listening', resolve))
+    const onListeningPromise = new Promise(resolve => server.on('listening', resolve))
     await onListeningPromise
 
     const mockHeaders = { 'apns-someheader': 'somevalue' }
@@ -407,19 +428,19 @@ describe('Client',() => {
     let didGetRequest = false
     let establishedConnections = 0
     let responseTimeout = 0
-    clientServer = createAndStartMockLowLevelServer(TEST_PORT, stream => {
+    server = createAndStartMockLowLevelServer(TEST_PORT, stream => {
       setTimeout(() => {
-        const { session } = stream
+        const session = stream.session
         didGetRequest = true
         if (session) {
           session.destroy()
         }
       }, responseTimeout)
     })
-    clientServer.on('connection', () => (establishedConnections += 1))
+    server.on('connection', () => (establishedConnections += 1))
     client = createClient(TEST_PORT)
 
-    const onListeningPromise = new Promise(resolve => clientServer.on('listening', resolve))
+    const onListeningPromise = new Promise(resolve => server.on('listening', resolve))
     await onListeningPromise
 
     const mockHeaders = { 'apns-someheader': 'somevalue' }
@@ -448,78 +469,10 @@ describe('Client',() => {
       performRequestExpectingDisconnect(),
       performRequestExpectingDisconnect(),
     ])
-    expect(establishedConnections).to.equal(3)
+    expect(establishedConnections).to.equal(4)
   })
 
-  it('Establishes a connection through a proxy server', async () => {
-    let didRequest = false
-    let establishedConnections = 0
-    let requestsServed = 0
-    clientServer = createAndStartMockServer(TEST_PORT, (req, res, requestBody) => {
-      expect(req.headers[':authority']).to.equal('127.0.0.1')
-      expect(req.headers[':method']).to.equal('POST')
-      expect(req.headers[':path']).to.equal(`/3/device/${MOCK_DEVICE_TOKEN}`)
-      expect(req.headers[':scheme']).to.equal('https')
-      expect(req.headers['apns-someheader']).to.equal('somevalue')
-      expect(requestBody).to.equal(MOCK_BODY)
-      // res.setHeader('X-Foo', 'bar')
-      // res.writeHead(200, { 'Content-Type': 'text/plain charset=utf-8' })
-      res.writeHead(200)
-      res.end('')
-      requestsServed += 1
-      didRequest = true
-    })
-    clientServer.on('connection', () => (establishedConnections += 1))
-    await new Promise(resolve => clientServer.once('listening', resolve))
-
-    // Proxy forwards all connections to TEST_PORT
-    const proxy = net.createServer(clientSocket => {
-      clientSocket.once('data', () => {
-        const serverSocket = net.createConnection(TEST_PORT, () => {
-          clientSocket.write('HTTP/1.1 200 OK\r\n\r\n')
-          clientSocket.pipe(serverSocket)
-          setTimeout(() => {
-            serverSocket.pipe(clientSocket)
-          }, 1)
-        })
-      })
-    })
-    await new Promise(resolve => proxy.listen(3128, resolve))
-
-    // Client configured with a port that the server is not listening on
-    client = createClient(TEST_PORT + 1)
-    // So without adding a proxy config request will fail with a network error
-    client.config.proxy = { host: '127.0.0.1', port: 3128 }
-    const runSuccessfulRequest = async () => {
-      const mockHeaders = { 'apns-someheader': 'somevalue' }
-      const mockNotification = {
-        headers: mockHeaders,
-        body: MOCK_BODY,
-      }
-      const mockDevice = MOCK_DEVICE_TOKEN
-      const result = await client.write(mockNotification, mockDevice)
-      expect(result).to.deep.equal({ device: MOCK_DEVICE_TOKEN })
-      expect(didRequest).to.be.true
-    }
-    expect(establishedConnections).to.equal(0) // should not establish a connection until it's needed
-    // Validate that when multiple valid requests arrive concurrently,
-    // only one HTTP/2 connection gets established
-    await Promise.all([
-      runSuccessfulRequest(),
-      runSuccessfulRequest(),
-      runSuccessfulRequest(),
-      runSuccessfulRequest(),
-      runSuccessfulRequest(),
-    ])
-    didRequest = false
-    await runSuccessfulRequest()
-    expect(establishedConnections).to.equal(1) // should establish a connection to the server and reuse it
-    expect(requestsServed).to.equal(6)
-
-    proxy.close()
-  })
-
-  // let fakes, Client
+  // let fakes, MultiClient
 
   // beforeEach(() => {
   //   fakes = {
@@ -531,20 +484,20 @@ describe('Client',() => {
   //   fakes.EndpointManager.returns(fakes.endpointManager)
   //   fakes.endpointManager.shutdown = sinon.stub()
 
-  //   Client = require("../lib/client")(fakes)
+  //   MultiClient = require("../lib/client")(fakes)
   // })
 
   // describe("constructor", () => {
   //   it("prepares the configuration with passed options", () => {
   //     let options = { production: true }
-  //     let client = new Client(options)
+  //     let client = new MultiClient(options)
 
   //     expect(fakes.config).to.be.calledWith(options)
   //   })
 
   //   describe("EndpointManager instance", function() {
   //     it("is created", () => {
-  //       let client = new Client()
+  //       let client = new MultiClient()
 
   //       expect(fakes.EndpointManager).to.be.calledOnce
   //       expect(fakes.EndpointManager).to.be.calledWithNew
@@ -554,7 +507,7 @@ describe('Client',() => {
   //       const returnSentinel = { "configKey": "configValue"}
   //       fakes.config.returns(returnSentinel)
 
-  //       let client = new Client({})
+  //       let client = new MultiClient({})
   //       expect(fakes.EndpointManager).to.be.calledWith(returnSentinel)
   //     })
   //   })
@@ -570,7 +523,7 @@ describe('Client',() => {
     //   let client
     //   context("transmission succeeds", () => {
     //     beforeEach( () => {
-    //       client = new Client( { address: "testapi" } )
+    //       client = new MultiClient( { address: "testapi" } )
     //       fakes.stream = new FakeStream("abcd1234", "200")
     //       fakes.endpointManager.getStream.onCall(0).returns(fakes.stream)
     //     })
@@ -626,7 +579,7 @@ describe('Client',() => {
     //             regenerate: sinon.stub(),
     //             isExpired: sinon.stub()
     //           }
-    //           client = new Client( { address: "testapi", token: fakes.token } )
+    //           client = new MultiClient( { address: "testapi", token: fakes.token } )
     //           fakes.stream = new FakeStream("abcd1234", "200")
     //           fakes.endpointManager.getStream.onCall(0).returns(fakes.stream)
     //         })
@@ -641,7 +594,7 @@ describe('Client',() => {
     //       })
     //       context("when token authentication is disabled", () => {
     //         beforeEach(() => {
-    //           client = new Client( { address: "testapi" } )
+    //           client = new MultiClient( { address: "testapi" } )
     //           fakes.stream = new FakeStream("abcd1234", "200")
     //           fakes.endpointManager.getStream.onCall(0).returns(fakes.stream)
     //         })
@@ -676,7 +629,7 @@ describe('Client',() => {
     //     let promise
     //     context("general case", () => {
     //       beforeEach(() => {
-    //         const client = new Client( { address: "testapi" } )
+    //         const client = new MultiClient( { address: "testapi" } )
     //         fakes.stream = new FakeStream("abcd1234", "400", { "reason" : "BadDeviceToken" })
     //         fakes.endpointManager.getStream.onCall(0).returns(fakes.stream)
     //         promise = client.write(builtNotification(), "abcd1234")
@@ -688,14 +641,14 @@ describe('Client',() => {
     //     context("ExpiredProviderToken", () => {
     //       beforeEach(() => {
     //         let tokenGenerator = sinon.stub().returns("fake-token")
-    //         const client = new Client( { address: "testapi", token: tokenGenerator })
+    //         const client = new MultiClient( { address: "testapi", token: tokenGenerator })
     //       })
     //     })
     //   })
     //   context("stream ends without completing request", () => {
     //     let promise
     //     beforeEach(() => {
-    //       const client = new Client( { address: "testapi" } )
+    //       const client = new MultiClient( { address: "testapi" } )
     //       fakes.stream = new stream.Transform({
     //         transform: function(chunk, encoding, callback) {}
     //       })
@@ -718,7 +671,7 @@ describe('Client',() => {
     //   context("stream is unprocessed", () => {
     //     let promise
     //     beforeEach(() => {
-    //       const client = new Client( { address: "testapi" } )
+    //       const client = new MultiClient( { address: "testapi" } )
     //       fakes.stream = new stream.Transform({
     //         transform: function(chunk, encoding, callback) {}
     //       })
@@ -744,7 +697,7 @@ describe('Client',() => {
     //   context("stream error occurs", () => {
     //     let promise
     //     beforeEach(() => {
-    //       const client = new Client( { address: "testapi" } )
+    //       const client = new MultiClient( { address: "testapi" } )
     //       fakes.stream = new stream.Transform({
     //         transform: function(chunk, encoding, callback) {}
     //       })
@@ -783,7 +736,7 @@ describe('Client',() => {
     // context("no new stream is returned but the endpoint later wakes up", () => {
     //   let notification, promise
     //   beforeEach( () => {
-    //     const client = new Client( { address: "testapi" } )
+    //     const client = new MultiClient( { address: "testapi" } )
     //     fakes.stream = new FakeStream("abcd1234", "200")
     //     fakes.endpointManager.getStream.onCall(0).returns(null)
     //     fakes.endpointManager.getStream.onCall(1).returns(fakes.stream)
@@ -818,7 +771,7 @@ describe('Client',() => {
     //   context("streams are always returned", () => {
     //     let promises
     //     beforeEach( () => {
-    //       const client = new Client( { address: "testapi" } )
+    //       const client = new MultiClient( { address: "testapi" } )
     //       fakes.endpointManager.getStream.onCall(0).returns(fakes.streams[0])
     //       fakes.endpointManager.getStream.onCall(1).returns(fakes.streams[1])
     //       fakes.endpointManager.getStream.onCall(2).returns(fakes.streams[2])
@@ -858,7 +811,7 @@ describe('Client',() => {
     //   context("some streams return, others wake up later", () => {
     //     let promises
     //     beforeEach( function() {
-    //       const client = new Client( { address: "testapi" } )
+    //       const client = new MultiClient( { address: "testapi" } )
     //       fakes.endpointManager.getStream.onCall(0).returns(fakes.streams[0])
     //       fakes.endpointManager.getStream.onCall(1).returns(fakes.streams[1])
     //       promises = Promise.all([
@@ -907,7 +860,7 @@ describe('Client',() => {
     //   context("connection fails", () => {
     //     let promises, client
     //     beforeEach( function() {
-    //       client = new Client( { address: "testapi" } )
+    //       client = new MultiClient( { address: "testapi" } )
     //       fakes.endpointManager.getStream.onCall(0).returns(fakes.streams[0])
     //       promises = Promise.all([
     //         client.write(builtNotification(), "abcd1234"),
@@ -953,7 +906,7 @@ describe('Client',() => {
     //     ]
     //   })
     //   it("reuses the token", () => {
-    //     const client = new Client( { address: "testapi", token: fakes.token } )
+    //     const client = new MultiClient( { address: "testapi", token: fakes.token } )
     //     fakes.token.regenerate = () => {
     //       fakes.token.generation = 1
     //       fakes.token.current = "second-token"
@@ -986,7 +939,7 @@ describe('Client',() => {
     //         new FakeStream("adfe5969", "200"),
     //       ]
     //       fakes.endpointManager.getStream.onCall(0).returns(fakes.streams[0])
-    //       const client = new Client( { address: "testapi", token: fakes.token } )
+    //       const client = new MultiClient( { address: "testapi", token: fakes.token } )
     //       const promise = client.write(builtNotification(), "adfe5969")
     //       setTimeout(() => {
     //         fakes.endpointManager.getStream.reset()
@@ -1009,7 +962,7 @@ describe('Client',() => {
     //       fakes.endpointManager.getStream.onCall(0).returns(fakes.streams[0])
     //       fakes.endpointManager.getStream.onCall(1).returns(fakes.streams[1])
     //       fakes.endpointManager.getStream.onCall(2).returns(fakes.streams[2])
-    //       const client = new Client( { address: "testapi", token: fakes.token } )
+    //       const client = new MultiClient( { address: "testapi", token: fakes.token } )
     //       const promises = Promise.all([
     //         client.write(builtNotification(), "abcd1234"),
     //         client.write(builtNotification(), "adfe5969"),
@@ -1038,7 +991,7 @@ describe('Client',() => {
     //       fakes.endpointManager.getStream.onCall(0).returns(fakes.streams[0])
     //       fakes.endpointManager.getStream.onCall(1).returns(fakes.streams[1])
     //       fakes.endpointManager.getStream.onCall(2).returns(fakes.streams[2])
-    //       const client = new Client( { address: "testapi", token: fakes.token } )
+    //       const client = new MultiClient( { address: "testapi", token: fakes.token } )
     //       return expect(client.write(builtNotification(), "adfe5969")).to.eventually.have.property("status", "403")
     //     })
     //     it("regenerate token", () => {
@@ -1047,7 +1000,7 @@ describe('Client',() => {
     //       fakes.token.isExpired = function (current, validSeconds) {
     //         return true
     //       }
-    //       let client = new Client({
+    //       let client = new MultiClient({
     //         address: "testapi",
     //         token: fakes.token
     //       })
@@ -1061,7 +1014,7 @@ describe('Client',() => {
     //       fakes.stream.connection = sinon.stub()
     //       fakes.stream.connection.close = sinon.stub()
     //       fakes.endpointManager.getStream.onCall(0).returns(fakes.stream)
-    //       let client = new Client({
+    //       let client = new MultiClient({
     //         address: "testapi",
     //         token: fakes.token
     //       })
@@ -1079,14 +1032,14 @@ describe('Client',() => {
     // })
     // context("with no pending notifications", () => {
     //   it("invokes shutdown on endpoint manager", () => {
-    //     let client = new Client()
+    //     let client = new MultiClient()
     //     client.shutdown()
     //     expect(fakes.endpointManager.shutdown).to.be.calledOnce
     //   })
     // })
     // context("with pending notifications", () => {
     //   it("invokes shutdown on endpoint manager after queue drains", () => {
-    //     let client = new Client({ address: "none" })
+    //     let client = new MultiClient({ address: "none" })
     //     fakes.streams = [
     //       new FakeStream("abcd1234", "200"),
     //       new FakeStream("adfe5969", "400", { reason: "MissingTopic" }),
