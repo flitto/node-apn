@@ -69,6 +69,11 @@ describe('config',() => {
       expect(config({ address: 'testaddress' })).to.have.property('address', 'testaddress')
     })
 
+    it('should use a custom address to production and sandbox mode to false', () => {
+      expect(config({ address: 'testaddress' })).to.have.property('production', false)
+      expect(config({ address: 'testaddress' })).to.have.property('sandbox', false)
+    })
+
     describe('address is passed', () => {
       it('sets production to true when using production address', () => {
         expect(config({ address: 'api.push.apple.com' })).to.have.property('production', true)
