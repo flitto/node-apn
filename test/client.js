@@ -83,12 +83,7 @@ describe('Client',() => {
       }
       done()
     }
-    if (clientServer) {
-      clientServer.shutdown(closeServer)
-      clientServer = null
-    } else {
-      closeServer()
-    }
+    closeServer()
   })
 
   it('Treats HTTP 200 responses as successful', async () => {

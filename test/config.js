@@ -24,6 +24,7 @@ describe('config',() => {
       pfx: null,
       passphrase: null,
       production: false,
+      sandbox: true,
       address: 'api.sandbox.push.apple.com',
       port: 443,
       proxy: null,
@@ -53,25 +54,24 @@ describe('config',() => {
       expect(config()).to.have.property('address', 'api.sandbox.push.apple.com')
     })
 
-    it('should use api.push.apple.com when NODE_ENV=production', () => {
-      process.env.NODE_ENV = 'production'
-      expect(config()).to.have.property('address', 'api.push.apple.com')
+    it('should use api.push.apple.com when mode=production', () => {
+      expect(config({ production: true, sandbox: false })).to.have.property('address', 'api.push.apple.com')
     })
 
-    it('should give precedence to production flag over NODE_ENV=production', () => {
-      process.env.NODE_ENV = 'production'
-      expect(config({ production: false })).to.have.property(
+    it('should give precedence to production flag over mode=sandbox', () => {
+      expect(config({ production: false, sandbox: true })).to.have.property(
         'address',
         'api.sandbox.push.apple.com'
       )
     })
 
-    it('should use api.push.apple.com when production:true', () => {
-      expect(config({ production: true })).to.have.property('address', 'api.push.apple.com')
-    })
-
     it('should use a custom address when passed', () => {
       expect(config({ address: 'testaddress' })).to.have.property('address', 'testaddress')
+    })
+
+    it('should use a custom address to production and sandbox mode to false', () => {
+      expect(config({ address: 'testaddress' })).to.have.property('production', false)
+      expect(config({ address: 'testaddress' })).to.have.property('sandbox', false)
     })
 
     describe('address is passed', () => {
@@ -80,7 +80,6 @@ describe('config',() => {
       })
 
       it('sets production to false when using sandbox address', () => {
-        process.env.NODE_ENV = 'production'
         expect(config({ address: 'api.sandbox.push.apple.com' })).to.have.property(
           'production',
           false
