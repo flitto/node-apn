@@ -3,8 +3,6 @@
 
 # Node APN <!-- omit in toc -->
 
-[![npm latest version](https://img.shields.io/npm/v/@flitto/node-apn.svg)](https://www.npmjs.com/package/@flitto/node-apn)
-
 ---
 > A Node.js module for interfacing with the Apple Push Notification service.
 > [(Apple APNs Overview)](https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/sending_notification_requests_to_apns)
