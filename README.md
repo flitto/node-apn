@@ -41,12 +41,12 @@ Create a new connection to the Apple Push Notification provider API, passing a d
 
 ```javascript
 const options = {
-	tokenSpec: {
-		key: 'path/to/APNsAuthKey_XXXXXXXXXX.p8',
-		keyId: 'key-id',
-		teamId: 'developer-team-id',
-	},
-	production: false,
+  tokenSpec: {
+    key: 'path/to/APNsAuthKey_XXXXXXXXXX.p8',
+    keyId: 'key-id',
+    teamId: 'developer-team-id',
+  },
+  production: false,
 }
 
 const apnProvider = new apn.Provider(options)
@@ -64,16 +64,16 @@ If you need to connect through an HTTP proxy, you simply need to provide the `pr
 
 ```javascript
 const options = {
-	tokenSpec: {
-		key: 'path/to/APNsAuthKey_XXXXXXXXXX.p8',
-		keyId: 'key-id',
-		teamId: 'developer-team-id',
-	},
-	proxy: {
-		host: '192.168.10.92',
-		port: 8080,
-	},
-	production: false,
+  tokenSpec: {
+    key: 'path/to/APNsAuthKey_XXXXXXXXXX.p8',
+    keyId: 'key-id',
+    teamId: 'developer-team-id',
+  },
+  proxy: {
+    host: '192.168.10.92',
+    port: 8080,
+  },
+  production: false,
 }
 
 const apnProvider = new apn.Provider(options)
@@ -106,7 +106,7 @@ Send the notification to the API with `send`, which returns a promise.
 
 ```javascript
 apnProvider.send(note, deviceToken).then((result) => {
-	// see documentation for an explanation of result
+  // see documentation for an explanation of result
 })
 ```
 
@@ -114,8 +114,8 @@ This will result in the the following notification payload being sent to the dev
 
 ```json
 {
-	"messageFrom": "John Appleseed",
-	"aps": { "badge": 3, "sound": "ping.aiff", "alert": "\uD83D\uDCE7 \u2709 You have a new message" }
+  "messageFrom": "John Appleseed",
+  "aps": { "badge": 3, "sound": "ping.aiff", "alert": "\uD83D\uDCE7 \u2709 You have a new message" }
 }
 ```
 

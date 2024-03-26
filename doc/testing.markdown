@@ -30,7 +30,7 @@ apn.ClientSpec.write(notification, device)
 
 ```javascript
 {
-	device: device
+  device: device
 }
 ```
 

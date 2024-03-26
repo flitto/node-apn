@@ -44,28 +44,28 @@ func sendNotification(user) {
 
 ```javascript
 function setup() {
-	let connection = new apn.Provider(configuration)
+  let connection = new apn.Provider(configuration)
 }
 
 function sendNotification(user) {
-	let note = new apn.Notification()
-	note.alert = 'Hello ' + user.name
-	note.topic = 'io.github.node-apn.test'
+  let note = new apn.Notification()
+  note.alert = 'Hello ' + user.name
+  note.topic = 'io.github.node-apn.test'
 
-	connection.send(note, user.tokenSpec).then((response) => {
-		response.sent.forEach((tokenSpec) => {
-			notificationSent(user, tokenSpec)
-		})
-		response.failed.forEach((failure) => {
-			if (failure.error) {
-				// A transport-level error occurred (e.g. network problem)
-				notificationError(user, failure.device, failure.error)
-			} else {
-				// `failure.status` is the HTTP status code
-				// `failure.response` is the JSON payload
-				notificationFailed(user, failure.device, failure.status, failure.response)
-			}
-		})
-	})
+  connection.send(note, user.tokenSpec).then((response) => {
+    response.sent.forEach((tokenSpec) => {
+      notificationSent(user, tokenSpec)
+    })
+    response.failed.forEach((failure) => {
+      if (failure.error) {
+        // A transport-level error occurred (e.g. network problem)
+        notificationError(user, failure.device, failure.error)
+      } else {
+        // `failure.status` is the HTTP status code
+        // `failure.response` is the JSON payload
+        notificationFailed(user, failure.device, failure.status, failure.response)
+      }
+    })
+  })
 }
 ```

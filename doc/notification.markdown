@@ -8,12 +8,12 @@ When initializing a `Notification` you can optionally pass an object to pre-popu
 
 ```javascript
 let notification = new apn.Notification({
-	alert: 'Hello, world!',
-	sound: 'chime.caf',
-	mutableContent: 1,
-	payload: {
-		sender: 'node-apn',
-	},
+  alert: 'Hello, world!',
+  sound: 'chime.caf',
+  mutableContent: 1,
+  payload: {
+    sender: 'node-apn',
+  },
 })
 ```
 
@@ -29,8 +29,8 @@ This `Object` is JSON encoded and sent as the notification payload. When propert
 let notification = new apn.Notification()
 
 notification.payload = {
-	from: 'node-apn',
-	source: 'web',
+  from: 'node-apn',
+  source: 'web',
 }
 
 notification.body = 'Hello, world!'
@@ -40,11 +40,11 @@ notification.body = 'Hello, world!'
 
 ```json
 {
-	"from": "node-apn",
-	"source": "web",
-	"aps": {
-		"alert": "Hello, world!"
-	}
+  "from": "node-apn",
+  "source": "web",
+  "aps": {
+    "alert": "Hello, world!"
+  }
 }
 ```
 
@@ -58,11 +58,11 @@ If supplied this payload will be encoded and transmitted as-is. The convenience 
 let notification = new apn.Notification()
 
 notification.rawPayload = {
-	from: 'node-apn',
-	source: 'web',
-	aps: {
-		'content-available': 1,
-	},
+  from: 'node-apn',
+  source: 'web',
+  aps: {
+    'content-available': 1,
+  },
 }
 
 notification.body = 'Hello, world!'
@@ -72,11 +72,11 @@ notification.body = 'Hello, world!'
 
 ```json
 {
-	"from": "node-apn",
-	"source": "web",
-	"aps": {
-		"content-available": 1
-	}
+  "from": "node-apn",
+  "source": "web",
+  "aps": {
+    "content-available": 1
+  }
 }
 ```
 
@@ -134,16 +134,16 @@ notification.aps.category = 'nodejs'
 
 ```json
 {
-	"aps": {
-		"alert": {
-			"body": "Hello, world!",
-			"title": "node-apn",
-			"action": "npm install"
-		},
-		"badge": 10,
-		"mutable-content": 1,
-		"category": "nodejs"
-	}
+  "aps": {
+    "alert": {
+      "body": "Hello, world!",
+      "title": "node-apn",
+      "action": "npm install"
+    },
+    "badge": 10,
+    "mutable-content": 1,
+    "category": "nodejs"
+  }
 }
 ```
 

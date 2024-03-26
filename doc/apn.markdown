@@ -14,12 +14,12 @@ Sending push notifications starts with creating a connection to APNS using the `
 
 ```javascript
 const provider = new apn.Provider({
-	tokenSpec: {
-		key: 'path/to/key.pem',
-		keyId: 'key-id',
-		teamId: 'developer-team-id',
-	},
-	production: false,
+  tokenSpec: {
+    key: 'path/to/key.pem',
+    keyId: 'key-id',
+    teamId: 'developer-team-id',
+  },
+  production: false,
 })
 ```
 
@@ -54,8 +54,8 @@ The `send` method returns a [`Promise`][promise] which will be fulfilled when al
 
 ```javascript
 provider.send(notification, deviceTokens).then((response) => {
-	// response.sent: Array of device tokens to which the notification was sent succesfully
-	// response.failed: Array of objects containing the device tokenSpec (`device`) and either an `error`, or a `status` and `response` from the API
+  // response.sent: Array of device tokens to which the notification was sent succesfully
+  // response.failed: Array of objects containing the device tokenSpec (`device`) and either an `error`, or a `status` and `response` from the API
 })
 ```
 
