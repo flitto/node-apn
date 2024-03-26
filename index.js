@@ -4,34 +4,34 @@ const debug = require('debug')
 debug.log = console.log.bind(console)
 
 const credentials = require('./lib/credentials')({
-  logger: debug,
+	logger: debug,
 })
 
 const config = require('./lib/config')({
-  logger: debug,
-  prepareCertificate: credentials.certificate,
-  prepareToken: credentials.token,
-  prepareCA: credentials.ca,
+	logger: debug,
+	prepareCertificate: credentials.certificate,
+	prepareToken: credentials.token,
+	prepareCA: credentials.ca,
 })
 
 const Client = require('./lib/client')({
-  logger: debug,
-  config,
-  http2,
+	logger: debug,
+	config,
+	http2,
 })
 
 const MultiClient = require('./lib/multiclient')({
-  Client,
+	Client,
 })
 
 const Provider = require('./lib/provider')({
-  logger: debug,
-  Client,
+	logger: debug,
+	Client,
 })
 
 const MultiProvider = require('./lib/provider')({
-  logger: debug,
-  Client: MultiClient,
+	logger: debug,
+	Client: MultiClient,
 })
 
 const Notification = require('./lib/notification')
@@ -39,8 +39,8 @@ const Notification = require('./lib/notification')
 const token = require('./lib/token')
 
 module.exports = {
-  Provider,
-  MultiProvider,
-  Notification,
-  token,
+	Provider,
+	MultiProvider,
+	Notification,
+	token,
 }

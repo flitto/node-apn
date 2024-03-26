@@ -1,5 +1,10 @@
-semi: true
-trailingComma: "es6"
-singleQuote: true
-arrowParens: "avoid"
-printWidth: 100
+{
+	"semi": false,
+	"trailingComma": "all",
+	"singleQuote": true,
+	"arrowParens": "always",
+	"printWidth": 120,
+	"tabWidth": 2,
+	"bracketSpacing": true,
+	"useTabs": true
+}
