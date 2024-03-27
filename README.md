@@ -1,5 +1,3 @@
-<p align="center"><img src="doc/logo.png" alt="node-apn" width="450" height="auto"></p>
-
 # Node APN <!-- omit in toc -->
 
 ---
