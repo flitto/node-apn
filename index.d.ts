@@ -6,7 +6,7 @@ export interface ProviderToken {
   /**
    * The filename of the provider token key (as supplied by Apple) to load from disk, or a Buffer/String containing the key data.
    */
-  key: Buffer|string
+  key: Buffer | string
   /**
    * The ID of the key issued by Apple
    */
@@ -25,19 +25,19 @@ export interface ProviderOptions {
   /**
    * The filename of the connection certificate to load from disk, or a Buffer/String containing the certificate data. (Defaults to: `cert.pem`)
    */
-  cert?: string|Buffer
+  cert?: string | Buffer
   /**
    * The filename of the connection key to load from disk, or a Buffer/String containing the key data. (Defaults to: `key.pem`)
    */
-  key?: string|Buffer
+  key?: string | Buffer
   /**
    * An array of trusted certificates. Each element should contain either a filename to load, or a Buffer/String (in PEM format) to be used directly. If this is omitted several well known "root" CAs will be used. - You may need to use this as some environments don't include the CA used by Apple (entrust_2048).
    */
-  ca?: (string|Buffer)[]
+  ca?: (string | Buffer)[]
   /**
    * File path for private key, certificate and CA certs in PFX or PKCS12 format, or a Buffer containing the PFX data. If supplied will always be used instead of certificate and key above.
    */
-  pfx?: string|Buffer
+  pfx?: string | Buffer
   /**
    * The passphrase for the connection key, if required
    */
@@ -61,7 +61,7 @@ export interface ProviderOptions {
   /**
    * Connect through an HTTP proxy
    */
-  proxy?: { host: string, port: number|string }
+  proxy?: { host: string; port: number | string }
 }
 
 export interface MultiProviderOptions extends ProviderOptions {
@@ -73,13 +73,13 @@ export interface MultiProviderOptions extends ProviderOptions {
 
 interface ApsAlert {
   body?: string
-  "loc-key"?: string
-  "loc-args"?: any[]
+  'loc-key'?: string
+  'loc-args'?: any[]
   title?: string
-  "title-loc-key"?: string
-  "title-loc-args"?: any[]
+  'title-loc-key'?: string
+  'title-loc-args'?: any[]
   action?: string
-  "action-loc-key"?: string
+  'action-loc-key'?: string
 }
 
 interface ApsSound {
@@ -90,12 +90,12 @@ interface ApsSound {
 
 interface Aps {
   alert?: string | ApsAlert
-  "launch-image"?: string
+  'launch-image'?: string
   badge?: number
   sound?: string | ApsSound
-  "content-available"?: undefined | 1
-  "mutable-content"?: undefined | 1
-  "url-args"?: string[]
+  'content-available'?: undefined | 1
+  'mutable-content'?: undefined | 1
+  'url-args'?: string[]
   category?: string
 }
 
@@ -113,7 +113,7 @@ export interface ResponseFailure {
 }
 
 export interface Responses {
-  sent:   ResponseSent[]
+  sent: ResponseSent[]
   failed: ResponseFailure[]
 }
 
@@ -124,7 +124,7 @@ export class Provider extends EventEmitter {
    *
    * A "recipient" is a String containing the hex-encoded device token.
    */
-  send(notification: Notification, recipients: string|string[]): Promise<Responses>
+  send(notification: Notification, recipients: string | string[]): Promise<Responses>
 
   /**
    * Set an info logger, and optionally an errorLogger to separately log errors.
@@ -148,7 +148,7 @@ export class MultiProvider extends EventEmitter {
    *
    * A "recipient" is a String containing the hex-encoded device token.
    */
-  send(notification: Notification, recipients: string|string[]): Promise<Responses>
+  send(notification: Notification, recipients: string | string[]): Promise<Responses>
 
   /**
    * Set an info logger, and optionally an errorLogger to separately log errors.
@@ -171,12 +171,12 @@ export interface NotificationAlertOptions {
   title?: string
   subtitle?: string
   body: string
-  "title-loc-key"?: string
-  "title-loc-args"?: string[]
-  "action-loc-key"?: string
-  "loc-key"?: string
-  "loc-args"?: string[]
-  "launch-image"?: string
+  'title-loc-key'?: string
+  'title-loc-args'?: string[]
+  'action-loc-key'?: string
+  'loc-key'?: string
+  'loc-args'?: string[]
+  'launch-image'?: string
 }
 
 export class Notification {
@@ -232,7 +232,7 @@ export class Notification {
   /**
    * The value to specify for `payload.aps.alert` can be either a `String` or an `Object` as outlined by the payload documentation.
    */
-  public alert: string|NotificationAlertOptions
+  public alert: string | NotificationAlertOptions
   /**
    * Setting this to true will specify "content-available" in the payload when it is compiled.
    */
@@ -244,11 +244,11 @@ export class Notification {
   /**
    * The value to specify for the `mdm` field where applicable.
    */
-  public mdm: string|Object
+  public mdm: string | Object
   /**
    * The value to specify for `payload.aps['url-args']`. This used for Safari Push NOtifications and should be an array of values in accordance with the Web Payload Documentation.
    */
   public urlArgs: string[]
 }
 
-export function token(token: (string | Buffer)) : string
+export function token(token: string | Buffer): string

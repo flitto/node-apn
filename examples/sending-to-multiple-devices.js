@@ -26,7 +26,7 @@ const note = new apn.Notification({
 note.topic = '<bundle identifier>'
 
 console.log(`Sending: ${note.compile()} to ${tokens}`)
-service.send(note, tokens).then(result => {
+service.send(note, tokens).then((result) => {
   console.log('sent:', result.sent.length)
   console.log('failed:', result.failed.length)
   console.log(result.failed)

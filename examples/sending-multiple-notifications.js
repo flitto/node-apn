@@ -18,7 +18,7 @@ const service = new apn.Provider({
 })
 
 Promise.all(
-  users.map(user => {
+  users.map((user) => {
     const note = new apn.Notification()
     note.alert = `Hey ${user.name}, I just sent my first Push Notification`
 
@@ -27,12 +27,12 @@ Promise.all(
 
     console.log(`Sending: ${note.compile()} to ${user.devices}`)
 
-    return service.send(note, user.devices).then(result => {
+    return service.send(note, user.devices).then((result) => {
       console.log('sent:', result.sent.length)
       console.log('failed:', result.failed.length)
       console.log(result.failed)
     })
-  })
+  }),
 ).then(() => {
   // For one-shot notification tasks you may wish to shutdown the connection
   // after everything is sent, but only call shutdown if you need your

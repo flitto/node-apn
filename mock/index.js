@@ -1,16 +1,16 @@
 const Client = require('./client')()
 const MultiClient = require('../lib/multiclient')({
-  Client
+  Client,
 })
 
 const Provider = require('../lib/provider')({
-  Client
+  Client,
 })
 
 // In case the code being tested relies on the provider.client.clients array existing
 // (e.g. a health check) use the real MultiClient for this mock.
 const MultiProvider = require('../lib/provider')({
-  Client: MultiClient
+  Client: MultiClient,
 })
 
 const Notification = require('../lib/notification')
@@ -21,5 +21,5 @@ module.exports = {
   MultiProvider,
   Notification,
   Client,
-  token
+  token,
 }

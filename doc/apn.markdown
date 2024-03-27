@@ -14,12 +14,12 @@ Sending push notifications starts with creating a connection to APNS using the `
 
 ```javascript
 const provider = new apn.Provider({
-  token: {
+  tokenSpec: {
     key: 'path/to/key.pem',
     keyId: 'key-id',
-    teamId: 'developer-team-id'
+    teamId: 'developer-team-id',
   },
-  production: false
+  production: false,
 })
 ```
 
@@ -53,17 +53,16 @@ After you have created a `Provider` and a `Notification` you can send it to Appl
 The `send` method returns a [`Promise`][promise] which will be fulfilled when all notifications have been successfully sent, or failed due to an error. The resolved value contains information about successful transmissions as well as details of failures.
 
 ```javascript
-provider.send(notification, deviceTokens).then( (response) => {
-		// response.sent: Array of device tokens to which the notification was sent succesfully
-		// response.failed: Array of objects containing the device token (`device`) and either an `error`, or a `status` and `response` from the API
-});
+provider.send(notification, deviceTokens).then((response) => {
+  // response.sent: Array of device tokens to which the notification was sent succesfully
+  // response.failed: Array of objects containing the device tokenSpec (`device`) and either an `error`, or a `status` and `response` from the API
+})
 ```
 
 See the [Provider documentation](provider.markdown) for more information.
 
-[programming-guide]:https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/index.html
-[push-path]:https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/APNSOverview.html#//apple_ref/doc/uid/TP40008194-CH8-SW6
-[provider-auth-tokens]:https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/CommunicatingwithAPNs.html#//apple_ref/doc/uid/TP40008194-CH11-SW3
-[registration]:https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/HandlingRemoteNotifications.html#//apple_ref/doc/uid/TP40008194-CH6-SW3
-
-[promise]:https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise
+[programming-guide]: https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/index.html
+[push-path]: https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/APNSOverview.html#//apple_ref/doc/uid/TP40008194-CH8-SW6
+[provider-auth-tokens]: https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/CommunicatingwithAPNs.html#//apple_ref/doc/uid/TP40008194-CH11-SW3
+[registration]: https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/HandlingRemoteNotifications.html#//apple_ref/doc/uid/TP40008194-CH6-SW3
+[promise]: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise
