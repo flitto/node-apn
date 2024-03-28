@@ -1,3 +1,5 @@
+const { jest: j } = require('@jest/globals')
+
 module.exports = function () {
   // Mocks of public API methods
   function Client() {}
