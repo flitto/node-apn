@@ -239,5 +239,10 @@ If you are constantly creating `Provider` instances in your app, make sure to ca
 
 <hr />
 
-## 3. License (MIT)
+## Contributing
+We welcome contribution from everyone in this project. Read [CONTRIBUTING.md](CONTRIBUTING.md) for detailed 
+contribution 
+guide.
+
+## 4. License (MIT)
 - [node-apn](https://github.com/node-apn/node-apn#license)

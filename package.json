@@ -10,7 +10,8 @@
     "iOS",
     "apns",
     "notifications",
-    "flitto"
+    "flitto",
+    "sandbox"
   ],
   "main": "index.js",
   "types": "index.d.ts",
