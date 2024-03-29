@@ -16,8 +16,12 @@
   "types": "index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/flitto/node-apn.git"
+    "url": "git+https://github.com/flitto/node-apn.git"
   },
+  "bugs": {
+    "url": "https://github.com/flitto/node-apn/issues"
+  },
+  "homepage": "https://github.com/flitto/node-apn#readme",
   "dependencies": {
     "jsonwebtoken": "^9.0.2",
     "node-forge": "^1.3.1"
@@ -32,7 +36,7 @@
     "semantic-release": "23.0.6"
   },
   "scripts": {
-    "test": "node_modules/.bin/jest",
+    "test": "jest",
     "format": "prettier --check --ignore-path .gitignore .",
     "format:fix": "prettier --write --ignore-path .gitignore ."
   },
@@ -66,5 +70,11 @@
   "engines": {
     "node": ">=20"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "directories": {
+    "doc": "doc",
+    "example": "examples",
+    "lib": "lib",
+    "test": "test"
+  }
 }
