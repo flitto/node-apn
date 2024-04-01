@@ -43,9 +43,13 @@ export interface ProviderOptions {
    */
   passphrase?: string
   /**
-   * Specifies which environment to connect to: Production (if true) or Sandbox - The hostname will be set automatically. (Defaults to NODE_ENV == "production", i.e. false unless the NODE_ENV environment variable is set accordingly)
+   * Specifies which environment to connect to: Production App - true: Alarm, false: No alarm
    */
   production?: boolean
+  /**
+   * Specifies which environment to connect to: dev, local (if true) or Sandbox - The hostname will be set
+   */
+  sandbox?: boolean
   /**
    * Reject Unauthorized property to be passed through to tls.connect() (Defaults to `true`)
    */

@@ -1,19 +1,29 @@
-# Node APN <!-- omit in toc -->
+<h1>node-apn &middot; 
+<img src="https://www.flitto.com/fcp/src/js/app/assets/images/portal/flitto_logo.svg" alt="Flitto" width=80>
+</h1>
 
----
+<a href="https://badge.fury.io/js/@flitto%2node-apn">
+<img src="https://badge.fury.io/js/@flitto%2node-apn.svg" alt="npm version" 
+height="18">
+</a>
 
 > A Node.js module for interfacing with the Apple Push Notification service.
 > [(Apple APNs Overview)](https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/sending_notification_requests_to_apns)
 
----
 
-## Features
 
-- Based on HTTP/2 based provider API
-- Maintains a connection to the server to maximise notification batching and throughput.
-- Automatically resends unsent notifications if an error occurs
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="#installation">Installation</a></li>
+    <li><a href="#usage">Usage</a></li>
+  </ol>
+</details>
+
 
 ## Installation
+
+## 1. Installation
 
 [npm][] is the preferred installation method:
 
@@ -21,33 +31,136 @@
 $ npm install @flitto/node-apn --save
 ```
 
-## Quick Start
+<hr />
+
+## 2. Usage
 
 This readme is a brief introduction, please refer to the full [documentation](doc/apn.markdown) in `doc/` for more details.
 
 If you have previously used v1.x and wish to learn more about what's changed in v2.0, please see [What's New](doc/whats-new.markdown)
 
-### Load in the module
+
+### 2-1. Load in the module (ts, js)
+
+#### Typescript
+```typescript
+import apn from '@flitto/node-apn'
+```
+
+#### Javascript
 
 ```javascript
 const apn = require('@flitto/node-apn')
 ```
 
-### Connecting
+<hr />
+
+### 2-2. Connecting
 
 Create a new connection to the Apple Push Notification provider API, passing a dictionary of options to the constructor. You must supply your tokenSpec credentials in the options.
 
-```javascript
+#### Single client
+
+##### Config
+```typescript
 const options = {
-  tokenSpec: {
+  token: {
     key: 'path/to/APNsAuthKey_XXXXXXXXXX.p8',
     keyId: 'key-id',
     teamId: 'developer-team-id',
   },
-  production: false,
+  // production: deploy, sandbox: xcode build test
+  production: true,
+  sandbox: false,
 }
+```
+
+##### Typescript
+
+```typescript
+import { type Provider } from '@flitto/node-apn'
+
+new Provider(options)
+```
+
+```typescript
+// nest.js - module.ts
+import { type Provider } from '@flitto/node-apn'
+
+providers: [
+  ...
+  {
+    provide: 'APNs',
+    useValue: new Provider(options),
+  },
+  ...
+```
+
+##### Javascript
+```javascript
+// single client
 
 const apnProvider = new apn.Provider(options)
+```
+
+<hr />
+
+#### Multiple client
+
+##### Config
+```typescript
+const options1 = {
+  token: {
+    key: 'path/to/APNsAuthKey_XXXXXXXXXX.p8',
+    keyId: 'key-id',
+    teamId: 'developer-team-id',
+  },
+  production: true,
+  sandbox: false,
+  clientCount: 0
+}
+const options2 = {
+  token: {
+    key: 'path/to/APNsAuthKey_XXXXXXXXXX.p8',
+    keyId: 'key-id',
+    teamId: 'developer-team-id',
+  },
+  production: true,
+  sandbox: false,
+  clientCount: 1
+}
+```
+
+##### Typescript
+
+```typescript
+import { type MultiProvider } from '@flitto/node-apn'
+
+new MultiProvider(options)
+```
+
+```typescript
+// nest.js - module.ts
+import { type MultiProvider } from '@flitto/node-apn'
+
+providers: [
+  ...
+  {
+    provide: 'APNs1',
+    useValue: new MultiProvider(options1),
+  },
+  {
+	provide: 'APNs2',
+	useValue: new MultiProvider(options2),
+  },
+  ...
+```
+
+##### Javascript
+
+```javascript
+const apnProvider1 = new apn.MultiProvider(options1)
+const apnProvider2 = new apn.MultiProvider(options2)
 ```
 
 By default, the provider will connect to the sandbox unless the environment variable `NODE_ENV=production` is set.
@@ -55,6 +168,8 @@ By default, the provider will connect to the sandbox unless the environment vari
 For more information about configuration options consult the [provider documentation](doc/provider.markdown).
 
 Help with preparing the key and certificate files for connection can be found in the [wiki][certificateWiki]
+<hr />
+
 
 #### Connecting through an HTTP proxy
 
@@ -62,7 +177,7 @@ If you need to connect through an HTTP proxy, you simply need to provide the `pr
 
 ```javascript
 const options = {
-  tokenSpec: {
+  token: {
     key: 'path/to/APNsAuthKey_XXXXXXXXXX.p8',
     keyId: 'key-id',
     teamId: 'developer-team-id',
@@ -73,13 +188,13 @@ const options = {
   },
   production: false,
 }
-
-const apnProvider = new apn.Provider(options)
 ```
 
 The provider will first send an HTTP CONNECT request to the specified proxy in order to establish an HTTP tunnel. Once established, it will create a new secure connection to the Apple Push Notification provider API through the tunnel.
+<hr />
 
-### Sending a notification
+
+### 2-3. Sending a notification
 
 To send a notification you will first need a device tokenSpec from your app as a string
 
@@ -113,10 +228,24 @@ This will result in the the following notification payload being sent to the dev
 ```json
 {
   "messageFrom": "John Appleseed",
-  "aps": { "badge": 3, "sound": "ping.aiff", "alert": "\uD83D\uDCE7 \u2709 You have a new message" }
+  "aps": { 
+    "badge": 3, 
+    "sound": "ping.aiff", 
+    "alert": "\uD83D\uDCE7 \u2709 You have a new message" 
+  }
 }
 ```
 
 You should only create one `Provider` per-process for each certificate/key pair you have. You do not need to create a new `Provider` for each notification. If you are only sending notifications to one app then there is no need for more than one `Provider`.
 
 If you are constantly creating `Provider` instances in your app, make sure to call `Provider.shutdown()` when you are done with each provider to release its resources and memory.
+
+<hr />
+
+## Contributing
+We welcome contribution from everyone in this project. Read [CONTRIBUTING.md](CONTRIBUTING.md) for detailed 
+contribution 
+guide.
+
+## 4. License (MIT)
+- [node-apn](https://github.com/node-apn/node-apn#license)
