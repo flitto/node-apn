@@ -3,8 +3,7 @@
 </h1>
 
 <a href="https://badge.fury.io/js/@flitto%2node-apn">
-<img src="https://badge.fury.io/js/@flitto%2node-apn.svg" alt="npm version" 
-height="18">
+<a href="https://badge.fury.io/js/@flitto%2Fnode-apn"><img src="https://badge.fury.io/js/@flitto%2Fnode-apn.svg" alt="npm version" height="18"></a>
 </a>
 
 > A Node.js module for interfacing with the Apple Push Notification service.
@@ -27,7 +26,7 @@ height="18">
 
 ## 1. Installation
 
-[npm][] is the preferred installation method:
+[npm](https://www.npmjs.com/package/@flitto/node-apn) is the preferred installation method:
 
 ```bash
 $ npm install @flitto/node-apn --save
@@ -36,11 +35,6 @@ $ npm install @flitto/node-apn --save
 <hr />
 
 ## 2. Usage
-
-This readme is a brief introduction, please refer to the full [documentation](doc/apn.markdown) in `doc/` for more details.
-
-If you have previously used v1.x and wish to learn more about what's changed in v2.0, please see [What's New](doc/whats-new.markdown)
-
 
 ### 2-1. Load in the module (ts, js)
 
