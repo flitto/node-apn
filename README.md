@@ -2,9 +2,7 @@
 <img src="https://www.flitto.com/fcp/src/js/app/assets/images/portal/flitto_logo.svg" alt="Flitto" width=80>
 </h1>
 
-<a href="https://badge.fury.io/js/@flitto%2node-apn">
 <a href="https://badge.fury.io/js/@flitto%2Fnode-apn"><img src="https://badge.fury.io/js/@flitto%2Fnode-apn.svg" alt="npm version" height="18"></a>
-</a>
 
 > A Node.js module for interfacing with the Apple Push Notification service.
 > [(Apple APNs Overview)](https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/sending_notification_requests_to_apns)
