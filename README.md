@@ -19,10 +19,7 @@
   </ol>
 </details>
 
-
 ## Installation
-
-## 1. Installation
 
 [npm](https://www.npmjs.com/package/@flitto/node-apn) is the preferred installation method:
 
@@ -32,9 +29,9 @@ $ npm install node-apn-flitto --save
 
 <hr />
 
-## 2. Usage
+## Usage
 
-### 2-1. Load in the module (ts, js)
+### 1. Load in the module (ts, js)
 
 #### Typescript
 ```typescript
@@ -49,7 +46,7 @@ const apn = require('node-apn-flitto')
 
 <hr />
 
-### 2-2. Connecting
+### 2. Connecting
 
 Create a new connection to the Apple Push Notification provider API, passing a dictionary of options to the constructor. You must supply your tokenSpec credentials in the options.
 
@@ -187,7 +184,7 @@ The provider will first send an HTTP CONNECT request to the specified proxy in o
 <hr />
 
 
-### 2-3. Sending a notification
+### 3. Sending a notification
 
 To send a notification you will first need a device tokenSpec from your app as a string
 
@@ -250,7 +247,7 @@ You should only create one `Provider` per-process for each certificate/key pair 
 If you are constantly creating `Provider` instances in your app, make sure to call `Provider.shutdown()` when you are done with each provider to release its resources and memory.
 
 
-### 2.4 Response
+### 4. Response
 
 ```typescript
 {
@@ -274,10 +271,10 @@ If you are constantly creating `Provider` instances in your app, make sure to ca
 
 <hr />
 
-## 3. Contributing
+## Contributing
 We welcome contribution from everyone in this project. Read [CONTRIBUTING.md](CONTRIBUTING.md) for detailed 
 contribution 
 guide.
 
-## 4. License (MIT)
+## License (MIT)
 - [node-apn](https://github.com/node-apn/node-apn#license)
