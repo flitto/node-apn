@@ -2,7 +2,7 @@
 <img src="https://www.flitto.com/fcp/src/js/app/assets/images/portal/flitto_logo.svg" alt="Flitto" width=80>
 </h1>
 
-<a href="https://badge.fury.io/js/@flitto%2Fnode-apn"><img src="https://badge.fury.io/js/@flitto%2Fnode-apn.svg" alt="npm version" height="18"></a>
+<a href="https://badge.fury.io/js/node-apn-flitto"><img src="https://badge.fury.io/js/node-apn-flitto.svg" alt="npm version" height="18"></a>
 
 > A Node.js module for interfacing with the Apple Push Notification service.
 > [(Apple APNs Overview)](https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/sending_notification_requests_to_apns)
@@ -27,7 +27,7 @@
 [npm](https://www.npmjs.com/package/@flitto/node-apn) is the preferred installation method:
 
 ```bash
-$ npm install @flitto/node-apn --save
+$ npm install node-apn-flitto --save
 ```
 
 <hr />
@@ -38,13 +38,13 @@ $ npm install @flitto/node-apn --save
 
 #### Typescript
 ```typescript
-import apn from '@flitto/node-apn'
+import apn from 'node-apn-flitto'
 ```
 
 #### Javascript
 
 ```javascript
-const apn = require('@flitto/node-apn')
+const apn = require('node-apn-flitto')
 ```
 
 <hr />
@@ -131,14 +131,14 @@ const options2 = {
 ##### Typescript
 
 ```typescript
-import { type MultiProvider } from '@flitto/node-apn'
+import { type MultiProvider } from 'node-apn-flitto'
 
 new MultiProvider(options)
 ```
 
 ```typescript
 // Nestjs - module.ts
-import { type MultiProvider } from '@flitto/node-apn'
+import { type MultiProvider } from 'node-apn-flitto'
 
 providers: [
   ...
@@ -221,7 +221,7 @@ apnProvider.send(notification, deviceToken).then((result) => {
 
 ##### Single
 ```typescript
-import { Provider } from '@flitto/node-apn'
+import { Provider } from 'node-apn-flitto'
 
 @Injectable()
 export class PushService {
@@ -234,7 +234,7 @@ export class PushService {
 
 ##### Multiple
 ```typescript
-import { MultiProvider } from '@flitto/node-apn'
+import { MultiProvider } from 'node-apn-flitto'
 
 @Injectable()
 export class PushService {
