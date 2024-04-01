@@ -1,4 +1,4 @@
-# Contributing to @flitto/node-apn
+# Contributing to node-apn-flitto
 
 ## 1. Issues
 

@@ -72,14 +72,14 @@ const options = {
 ##### Typescript
 
 ```typescript
-import { type Provider } from '@flitto/node-apn'
+import { type Provider } from 'node-apn-flitto'
 
 new Provider(options)
 ```
 
 ```typescript
 // Nestjs - module.ts
-import { type Provider } from '@flitto/node-apn'
+import { type Provider } from 'node-apn-flitto'
 
 @Module({
   ...
