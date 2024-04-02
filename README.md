@@ -2,10 +2,7 @@
 <img src="https://www.flitto.com/fcp/src/js/app/assets/images/portal/flitto_logo.svg" alt="Flitto" width=80>
 </h1>
 
-<a href="https://badge.fury.io/js/@flitto%2node-apn">
-<img src="https://badge.fury.io/js/@flitto%2node-apn.svg" alt="npm version" 
-height="18">
-</a>
+<a href="https://badge.fury.io/js/node-apn-flitto"><img src="https://badge.fury.io/js/node-apn-flitto.svg" alt="npm version" height="18"></a>
 
 > A Node.js module for interfacing with the Apple Push Notification service.
 > [(Apple APNs Overview)](https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/sending_notification_requests_to_apns)
@@ -22,42 +19,34 @@ height="18">
   </ol>
 </details>
 
-
 ## Installation
 
-## 1. Installation
-
-[npm][] is the preferred installation method:
+[npm](https://www.npmjs.com/package/@flitto/node-apn) is the preferred installation method:
 
 ```bash
-$ npm install @flitto/node-apn --save
+$ npm install node-apn-flitto --save
 ```
 
 <hr />
 
-## 2. Usage
+## Usage
 
-This readme is a brief introduction, please refer to the full [documentation](doc/apn.markdown) in `doc/` for more details.
-
-If you have previously used v1.x and wish to learn more about what's changed in v2.0, please see [What's New](doc/whats-new.markdown)
-
-
-### 2-1. Load in the module (ts, js)
+### 1. Load in the module (ts, js)
 
 #### Typescript
 ```typescript
-import apn from '@flitto/node-apn'
+import apn from 'node-apn-flitto'
 ```
 
 #### Javascript
 
 ```javascript
-const apn = require('@flitto/node-apn')
+const apn = require('node-apn-flitto')
 ```
 
 <hr />
 
-### 2-2. Connecting
+### 2. Connecting
 
 Create a new connection to the Apple Push Notification provider API, passing a dictionary of options to the constructor. You must supply your tokenSpec credentials in the options.
 
@@ -80,14 +69,14 @@ const options = {
 ##### Typescript
 
 ```typescript
-import { type Provider } from '@flitto/node-apn'
+import { type Provider } from 'node-apn-flitto'
 
 new Provider(options)
 ```
 
 ```typescript
 // Nestjs - module.ts
-import { type Provider } from '@flitto/node-apn'
+import { type Provider } from 'node-apn-flitto'
 
 @Module({
   ...
@@ -139,14 +128,14 @@ const options2 = {
 ##### Typescript
 
 ```typescript
-import { type MultiProvider } from '@flitto/node-apn'
+import { type MultiProvider } from 'node-apn-flitto'
 
 new MultiProvider(options)
 ```
 
 ```typescript
 // Nestjs - module.ts
-import { type MultiProvider } from '@flitto/node-apn'
+import { type MultiProvider } from 'node-apn-flitto'
 
 providers: [
   ...
@@ -195,7 +184,7 @@ The provider will first send an HTTP CONNECT request to the specified proxy in o
 <hr />
 
 
-### 2-3. Sending a notification
+### 3. Sending a notification
 
 To send a notification you will first need a device tokenSpec from your app as a string
 
@@ -229,7 +218,7 @@ apnProvider.send(notification, deviceToken).then((result) => {
 
 ##### Single
 ```typescript
-import { Provider } from '@flitto/node-apn'
+import { Provider } from 'node-apn-flitto'
 
 @Injectable()
 export class PushService {
@@ -242,7 +231,7 @@ export class PushService {
 
 ##### Multiple
 ```typescript
-import { MultiProvider } from '@flitto/node-apn'
+import { MultiProvider } from 'node-apn-flitto'
 
 @Injectable()
 export class PushService {
@@ -258,7 +247,7 @@ You should only create one `Provider` per-process for each certificate/key pair 
 If you are constantly creating `Provider` instances in your app, make sure to call `Provider.shutdown()` when you are done with each provider to release its resources and memory.
 
 
-### 2.4 Response
+### 4. Response
 
 ```typescript
 {
@@ -282,10 +271,10 @@ If you are constantly creating `Provider` instances in your app, make sure to ca
 
 <hr />
 
-## 3. Contributing
+## Contributing
 We welcome contribution from everyone in this project. Read [CONTRIBUTING.md](CONTRIBUTING.md) for detailed 
 contribution 
 guide.
 
-## 4. License (MIT)
+## License (MIT)
 - [node-apn](https://github.com/node-apn/node-apn#license)

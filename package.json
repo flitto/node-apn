@@ -1,7 +1,7 @@
 {
-  "name": "@flitto/node-apn",
+  "name": "node-apn-flitto",
   "description": "An interface to the Apple Push Notification service for Node.js by Flitto",
-  "version": "4.1.0",
+  "version": "4.1.2",
   "author": "Flitto",
   "keywords": [
     "apple",
@@ -10,8 +10,9 @@
     "iOS",
     "apns",
     "notifications",
+    "sandbox",
     "flitto",
-    "sandbox"
+    "nestjs"
   ],
   "main": "index.js",
   "types": "index.d.ts",
