@@ -21,6 +21,10 @@
 
 ## Installation
 
+| <b>Version</b> | 
+|----------------|
+| node >= 20     |
+
 [npm](https://www.npmjs.com/package/@flitto/node-apn) is the preferred installation method:
 
 ```bash
