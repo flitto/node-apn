@@ -74,8 +74,9 @@ import { type Provider } from 'node-apn-flitto'
 new Provider(options)
 ```
 
+##### Typescript - Nestjs
+
 ```typescript
-// Nestjs - module.ts
 import { type Provider } from 'node-apn-flitto'
 
 @Module({
@@ -133,8 +134,9 @@ import { type MultiProvider } from 'node-apn-flitto'
 new MultiProvider(options)
 ```
 
+##### Typescript - Nestjs
+
 ```typescript
-// Nestjs - module.ts
 import { type MultiProvider } from 'node-apn-flitto'
 
 providers: [
