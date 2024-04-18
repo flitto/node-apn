@@ -12,7 +12,13 @@ You can contribute to Slash libraries via:
 ## 2. Pull Requests
 You can raise your own PR. The title of your PR should match the following format:
 
+#### Branch
+```shell
+featrue/<issue> OR featrue/<commit-description>
 ```
+
+#### Commit
+```shell
 <type>: <description>
 ```
 
@@ -27,4 +33,5 @@ if you haven't changed shipped code :
 - docs - *.md change documentation
 - test - if you only change test case
 - style - code style or convention
+- build - package version up
 
