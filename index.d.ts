@@ -101,15 +101,9 @@ interface Aps {
   'mutable-content'?: undefined | 1
   'url-args'?: string[]
   category?: string
-  'interruption-level'?: 'passive' | 'active' | 'time-sensitive' | 'critical'
-  'relevance-score'?: number
-  'target-content-id'?: string
-  timestamp?: number
-  event?: string
-  'stale-date'?: number
-  'content-state'?: any
-  'attributes-type'?: string
-  attributes?: any
+  'interruptionLevel'?: 'passive' | 'active' | 'time-sensitive' | 'critical'
+  'relevanceScore'?: number
+  filterCriteria?: string
 }
 
 interface BaseResponse {
