@@ -1,6 +1,6 @@
 {
   "name": "node-apn-flitto",
-  "description": "An interface to the Apple Push Notification service for Node.js,
+  "description": "An interface to the Apple Push Notification service for Node.js",
   "author": "Flitto",
   "keywords": [
     "apple",
