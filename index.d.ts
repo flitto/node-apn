@@ -101,15 +101,27 @@ interface Aps {
   'mutable-content'?: undefined | 1
   'url-args'?: string[]
   category?: string
+  'interruption-level'?: 'passive' | 'active' | 'time-sensitive' | 'critical'
+  'relevance-score'?: number
+  'target-content-id'?: string
+  timestamp?: number
+  event?: string
+  'stale-date'?: number
+  'content-state'?: any
+  'attributes-type'?: string
+  attributes?: any
 }
 
-export interface ResponseSent {
+interface BaseResponse {
   device: string
+  'apns-id'?: string
+  status: number
 }
-export interface ResponseFailure {
-  device: string
+
+export interface ResponseSent extends BaseResponse {}
+
+export interface ResponseFailure extends BaseResponse {
   error?: Error
-  status?: number
   response?: {
     reason: string
     timestamp?: string
@@ -169,7 +181,14 @@ export class MultiProvider extends EventEmitter {
   shutdown(callback?: () => void): void
 }
 
-export type NotificationPushType = 'background' | 'alert' | 'voip'
+export type NotificationPushType =
+  | 'background'
+  | 'alert'
+  | 'voip'
+  | 'location'
+  | 'complication'
+  | 'fileprovider'
+  | 'mdm'
 
 export interface NotificationAlertOptions {
   title?: string
