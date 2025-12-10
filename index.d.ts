@@ -114,13 +114,12 @@ interface Aps {
 
 interface BaseResponse {
   device: string
-  'apns-id'?: string
-  status: number
 }
 
 export interface ResponseSent extends BaseResponse {}
 
 export interface ResponseFailure extends BaseResponse {
+  status: number
   error?: Error
   response?: {
     reason: string
