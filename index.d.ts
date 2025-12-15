@@ -103,13 +103,15 @@ interface Aps {
   category?: string
 }
 
-export interface ResponseSent {
+interface BaseResponse {
   device: string
 }
-export interface ResponseFailure {
-  device: string
+
+export interface ResponseSent extends BaseResponse {}
+
+export interface ResponseFailure extends BaseResponse {
+  status: number
   error?: Error
-  status?: number
   response?: {
     reason: string
     timestamp?: string
@@ -169,7 +171,14 @@ export class MultiProvider extends EventEmitter {
   shutdown(callback?: () => void): void
 }
 
-export type NotificationPushType = 'background' | 'alert' | 'voip'
+export type NotificationPushType =
+  | 'background'
+  | 'alert'
+  | 'voip'
+  | 'location'
+  | 'complication'
+  | 'fileprovider'
+  | 'mdm'
 
 export interface NotificationAlertOptions {
   title?: string
